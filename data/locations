@@ -1,0 +1,18 @@
+//X(name, str, dstval, srcval)
+X(AL,  "AL",    0, 0),
+X(AH,  "AH",    1, 1),
+X(BL,  "BL",    2, 2),
+X(BH,  "BH",    3, 3),
+X(CL,  "CL",    4, 4),
+X(CH,  "CH",    5, 5),
+X(AX,  "AX",    6, 6),
+X(BX,  "BX",    7, 7),
+X(CX,  "CX",    8, 8),
+X(IP,  "IP",   -2, 9),
+X(IMD, "",     9, 10),
+X(PAX, "[AX]", 10, 11),
+X(PBX, "[BX]", 11, 12),
+X(PCX, "[CX]", 12, 13),
+X(PIMD,"",     13, 14),
+
+X(NONE, "", -2, -1)
