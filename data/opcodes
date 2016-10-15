@@ -33,6 +33,7 @@ X(JC, 1),
 X(JNC, 1),
 X(JO, 1),
 X(JNO, 1),
+X(JMPA, 1),
 
 X(DAT, 1),
 X(NONE, 0)

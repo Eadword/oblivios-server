@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <vector>
 
 enum class Location : uint8_t {
 #define X(name, str, dstval, srcval) name
