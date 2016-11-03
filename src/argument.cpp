@@ -60,6 +60,6 @@ Argument::Argument(Thread& thread, uint8_t* ram, uint8_t argn) : loc_type(NONE),
             }
             break;
 
-        case Location::NONE:break;
+        case Location::NONE: throw std::invalid_argument("Invalid location"); break;
     }
 }
