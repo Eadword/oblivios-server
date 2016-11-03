@@ -1,7 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <string>
 #include <vector>
-#include <algorithm>
 
 enum class OPCode : uint8_t {
 #define X(val, b) val

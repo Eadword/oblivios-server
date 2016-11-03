@@ -3,7 +3,7 @@
 
 struct Player;
 
-namespace  nolhmann {class json;}
+namespace nolhmann {class json;}
 using Json = nlohmann::json;
 
 /**
@@ -22,6 +22,6 @@ class Game {
 
 public:
     Game() = delete;
-    Game(Json config);
+    Game(const Json& config);
     ~Game();
 };

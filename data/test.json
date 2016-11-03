@@ -1,0 +1,7 @@
+{
+  "num_players": 2,
+  "player_settings": [
+    { },
+    { "cycle_modifer": 1, "max_threads": 3 }
+  ]
+}

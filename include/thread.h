@@ -1,5 +1,7 @@
 #pragma once
 
+#include "opcode.h"
+
 struct Thread {
     uint16_t ax, bx, cx, ip;
     // overflow, sign, zero, carry

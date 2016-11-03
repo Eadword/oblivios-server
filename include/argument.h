@@ -1,7 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include "thread.h"
+
+struct Thread;
 
 /**
  * An abstraction to allow handling all arguments no matter where they are in the same way.
