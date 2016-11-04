@@ -3,8 +3,11 @@
 
 Player::Player() : cycle_modifer(1), max_threads(32), owned_ram(0), killed_processes(0), score(0) {}
 
-Player::Player(const Json& j) : Player() {
+Player::Player(const Json& j, uint8_t pid) : Player() {
     if(!j.is_object()) return;
-    if(j["cycle_modifer"].is_number()) cycle_modifer = j["cycle_modifer"];
-    if(j["max_threads"].is_number()) max_threads = j["max_threads"];
+    try { cycle_modifer = j.at("cycle_modifer"); } catch(std::out_of_range& e) {}
+    try { max_threads   = j.at("max_threads");   } catch(std::out_of_range& e) {}
+
+    try { name = j.at("name");}
+    catch(std::out_of_range& e) { name = "Process_" + std::to_string(pid); }
 }

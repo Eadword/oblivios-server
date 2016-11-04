@@ -11,6 +11,7 @@ struct Player {
     // pid is defined by its index in the game array + 1
     float cycle_modifer;
     uint8_t max_threads;
+    std::string name;
 
     uint32_t owned_ram;
     uint32_t killed_threads;
@@ -22,8 +23,8 @@ struct Player {
     Player();
 
     /**
-     * Pass a json object containing the player
+     * Pass a json object containing the player's
      * configuration only.
      */
-    Player(const Json& j);
+    Player(const Json& j, uint8_t pid);
 };
