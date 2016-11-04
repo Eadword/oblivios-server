@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <random>
 #include <iterator>
 
 #include <base.hpp>
@@ -22,7 +23,7 @@ uint8_t getNumPlayers(const Json& j) {
 
 
 Game::Game(const Json& config) : num_players(getNumPlayers(config)) {
-    std::fill_n(std::begin(last_pid), 0x10000, 0);
+    std::fill_n(last_pid, 0x10000, 0);
 
     players = new Player[num_players];
 
@@ -70,7 +71,27 @@ Game::Game(const Json& config) : num_players(getNumPlayers(config)) {
     }
 
     //All the warriors are at least 1 byte and will fit
+    //Now we put them into RAM
+    //start by creating a non-repeating rand with random_shuffle which defines the order of programs
+    uint8_t* order = new uint8_t[num_players];
+    std::generate(order, order+num_players, [](){ static uint8_t x = 0; return x++; } );
+    std::default_random_engine generator;
+    std::shuffle(order, order+num_players, generator);
 
+    const uint16_t max_gap = (uint16_t)((0x10000 - total_size) / num_players);
+    std::uniform_int_distribution<uint16_t> distribution(0, max_gap);
+    uint16_t current = 0;
+    for(uint8_t x = 0; x < num_players; ++x) {
+        const std::string& program = programs[order[x]];
+        current += distribution(generator); //random offset that will not allow out of range indexing
+
+        //copy binary data into ram at the location
+        std::copy(program.begin(), program.end(), ram+current);
+        //update who "owns" the RAM we just wrote
+        std::fill_n(last_pid, program.size(), order[x] + 1); //order[x] + 1 is current pid
+    }
+
+    delete[] order;
     delete[] programs;
 }
 
