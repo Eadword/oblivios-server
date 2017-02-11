@@ -1,6 +1,6 @@
 #include <algorithm>
-#include <random>
 #include <iterator>
+#include <random>
 
 #include <base.hpp>
 #include <json.hpp>
@@ -97,4 +97,23 @@ Game::Game(const Json& config) : num_players(getNumPlayers(config)) {
 
 Game::~Game() {
     delete[] players;
+}
+
+std::ostream& operator<<(std::ostream& os, const Game& game) {
+    const size_t BUFFER_SIZE = 3;
+
+    //os << std::hex << std::uppercase;
+
+    char buffer[BUFFER_SIZE];
+
+    for(uint16_t x = 0; ; ++x) {
+        snprintf(buffer, BUFFER_SIZE, "%02X", game.ram[x]);
+        if((x + 1) % 64 == 0) os << buffer << '\n';
+        else os << buffer << ' ';
+        if(x == 0xFFFF) break;
+    }
+
+    os.unsetf(std::ios::hex);
+    os.unsetf(std::ios::uppercase);
+    return os;
 }

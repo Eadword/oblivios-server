@@ -24,4 +24,7 @@ public:
     Game() = delete;
     Game(const Json& config);
     ~Game();
+
+    /// @warning This prints a lot of stuff
+    friend std::ostream& operator<<(std::ostream& os, const Game& game);
 };
