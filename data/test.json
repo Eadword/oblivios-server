@@ -1,5 +1,7 @@
 {
   "max_player_size": 4096,
+  "cycles_per_turn": 100,
+  "max_cycles": 100000000,
   "num_players": 2,
   "player_settings": [
     { "name": "Joe" },

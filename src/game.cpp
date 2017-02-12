@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstdint>
 #include <iterator>
 #include <random>
 
@@ -6,23 +7,29 @@
 #include <json.hpp>
 
 #include "game.h"
+#include "instruction.h"
 #include "player.h"
 
 //Used only for the Game constructor
-uint8_t getNumPlayers(const Json& j) {
+template<typename T>
+T readNum(const Json& j, std::string field, const int64_t min_value = INT64_MIN,
+          const int64_t max_value = INT64_MAX) {
     try {
-        unsigned int t = j.at("num_players");
-        if(t > 0xff) throw std::invalid_argument("Number of players is not valid");
-        return (uint8_t)t;
+        int64_t t = j.at(field);
+        if(t > max_value || t < min_value) throw std::invalid_argument(field + " is out of bounds");
+        return (T)t;
     } catch(std::out_of_range& e) {
-        throw std::invalid_argument("Number of players is not set");
+        throw std::invalid_argument(field + " is not set");
     } catch(std::domain_error& e) {
-        throw std::invalid_argument("Number of players is invalid");
+        throw std::invalid_argument(field + " is invalid");
     }
 }
 
 
-Game::Game(const Json& config) : num_players(getNumPlayers(config)) {
+Game::Game(const Json& config) :
+        num_players(readNum<uint8_t>(config, "num_players", 1, UINT8_MAX)),
+        cycles_per_turn(readNum<uint16_t>(config, "cycles_per_turn", 1, UINT16_MAX)),
+        max_cycles(readNum<int64_t>(config, "max_cycles", 1)){
     std::fill_n(pid, 0x10000, 0);
 
     players = new Player[num_players];
@@ -94,7 +101,7 @@ Game::Game(const Json& config) : num_players(getNumPlayers(config)) {
         std::fill_n(pid+cur_offset, cur_code.size(), cur_pid);
 
         //add thread to player
-        players[cur_pid - 1].threads.push(Thread(cur_offset));
+        players[cur_pid - 1].threads.push(new Thread(cur_offset));
         cur_offset += cur_code.size();
     }
 
@@ -108,14 +115,42 @@ Game::~Game() {
 
 
 void Game::run(std::ostream& log) {
+    sendInit(log);
+
+    uint8_t alive = num_players;
+
+    //main loop, runs until only one AI continues running or max cycles is reached
+    for(uint64_t cycle = 1; alive && cycle < max_cycles - alive * cycles_per_turn; ++cycle) {
+        //run through player turns
+        for(uint8_t pid = 1; pid <= num_players; ++pid) {
+            Player& player = players[pid - 1];
+
+            //get next thread to run
+            if(player.threads.empty()) continue;
+            Thread*const thread = player.threads.front();
+            player.threads.pop();
+
+            //process instruction
+            //TODO: finish this up
+            Instruction::getOPCode(ram, thread->ip);
+
+            //add thread back to end of queue
+            player.threads.push(thread);
+        }
+    }
+}
+
+
+void Game::sendInit(std::ostream& log) {
     //tell server where the warriors are
-    Json update = {{"type", "init"},{"tick", 0}};
+    Json update = {{"type", "init"},
+                   {"cycle", 0}};
 
     //player has a region, server already knows what data to fill in if given starting position
-    for(uint8_t x = 0; x < num_players; ++x) {
+    for (uint8_t x = 0; x < num_players; ++x) {
         const Player& player = players[x];
 
-        const uint16_t start = player.threads.front().ip;
+        const uint16_t start = player.threads.front()->ip;
         //const uint16_t end = (uint16_t) //find end of pid and then distance from start to it
         //        (std::find_if_not(pid+start, pid+0x10000, [x](int v){ return v == x + 1;}) - pid);
 
@@ -123,7 +158,7 @@ void Game::run(std::ostream& log) {
         update["starts"].push_back(start);
     }
 
-    log << std::setw(2) << update;
+    log << update;
 }
 
 

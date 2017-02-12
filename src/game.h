@@ -15,10 +15,15 @@ class Game {
     /// The pid of last modification
     uint8_t pid[0x10000];
 
+    const uint16_t cycles_per_turn;
+    const int64_t max_cycles;
+
     /// The number of players in a given game
     const uint8_t num_players;
     /// Array of players, index i is the player with pid i + 1
     Player* players;
+
+    void sendInit(std::ostream& log);
 
 public:
     Game() = delete;

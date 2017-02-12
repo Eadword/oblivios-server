@@ -12,3 +12,10 @@ Player::Player(const Json& j, uint8_t pid) : Player() {
     try { name = j.at("name");}
     catch(std::out_of_range& e) { name = "Process_" + std::to_string(pid); }
 }
+
+Player::~Player() {
+    while(!threads.empty()) {
+        delete threads.front();
+        threads.pop();
+    }
+}

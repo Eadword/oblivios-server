@@ -18,7 +18,7 @@ struct Player {
     uint32_t killed_processes;
     uint32_t score;
 
-    std::queue<Thread> threads;
+    std::queue<Thread*> threads;
 
     Player();
 
@@ -27,4 +27,5 @@ struct Player {
      * configuration only.
      */
     Player(const Json& j, uint8_t pid);
+    ~Player();
 };
