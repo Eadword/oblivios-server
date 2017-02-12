@@ -13,17 +13,19 @@ class Game {
     /// The memory warriors will run in
     uint8_t ram[0x10000];
     /// The pid of last modification
-    uint8_t last_pid[0x10000];
+    uint8_t pid[0x10000];
 
     /// The number of players in a given game
     const uint8_t num_players;
-    /// Array of players, index i is the player with pid j - 1
+    /// Array of players, index i is the player with pid i + 1
     Player* players;
 
 public:
     Game() = delete;
     Game(const Json& config);
     ~Game();
+
+    void run(std::ostream& log);
 
     /// @warning This prints a lot of stuff
     friend std::ostream& operator<<(std::ostream& os, const Game& game);

@@ -6,7 +6,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 include_directories(json/src)
 include_directories(base)
 
-include_directories(include)
 include_directories(data)
 
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)

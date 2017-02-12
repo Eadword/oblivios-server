@@ -15,5 +15,7 @@ int main() {
     file.close();
 
     Game game(json);
+    game.run(std::cout);
+
     return 0;
 }

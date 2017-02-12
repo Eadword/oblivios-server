@@ -23,7 +23,7 @@ uint8_t getNumPlayers(const Json& j) {
 
 
 Game::Game(const Json& config) : num_players(getNumPlayers(config)) {
-    std::fill_n(last_pid, 0x10000, 0);
+    std::fill_n(pid, 0x10000, 0);
 
     players = new Player[num_players];
 
@@ -47,7 +47,7 @@ Game::Game(const Json& config) : num_players(getNumPlayers(config)) {
         //Decode the strings
         for(uint8_t x = 0; x < num_players; ++x) {
             //Store the decoded string, and check if the size is zero, there was a problem 
-            if(!( programs[x] = base64::decode(warriors[x].get<std::string>()) ).size())
+            if( !(programs[x] = base64::decode(warriors[x].get<std::string>())).size() )
                 throw std::invalid_argument(players[x].name + " did not decode properly");
         }
     }
@@ -65,6 +65,7 @@ Game::Game(const Json& config) : num_players(getNumPlayers(config)) {
         const size_t size = programs[x].size();
         if(size > (max_size ? max_size : 0x10000)) //default maxsize to RAM size if 0
             throw std::invalid_argument(players[x].name + " is larger than the max size");
+        players[x].owned_ram = (uint32_t)size;
         total_size += size;
         if(total_size > 0x10000)
             throw std::invalid_argument("Total size of warriors exceeds RAM capacity");
@@ -76,19 +77,25 @@ Game::Game(const Json& config) : num_players(getNumPlayers(config)) {
     uint8_t* order = new uint8_t[num_players];
     std::generate(order, order+num_players, [](){ static uint8_t x = 0; return x++; } );
     std::default_random_engine generator;
+    generator.seed((unsigned long)time(nullptr));
     std::shuffle(order, order+num_players, generator);
 
     const uint16_t max_gap = (uint16_t)((0x10000 - total_size) / num_players);
     std::uniform_int_distribution<uint16_t> distribution(0, max_gap);
-    uint16_t current = 0;
+    uint16_t cur_offset = 0;
     for(uint8_t x = 0; x < num_players; ++x) {
-        const std::string& program = programs[order[x]];
-        current += distribution(generator); //random offset that will not allow out of range indexing
+        const uint8_t cur_pid = (uint8_t)(order[x] + 1);
+        const std::string& cur_code = programs[cur_pid - 1];
+        cur_offset += distribution(generator); //random offset that will not allow out of range indexing
 
         //copy binary data into ram at the location
-        std::copy(program.begin(), program.end(), ram+current);
+        std::copy(cur_code.begin(), cur_code.end(), ram+cur_offset);
         //update who "owns" the RAM we just wrote
-        std::fill_n(last_pid, program.size(), order[x] + 1); //order[x] + 1 is current pid
+        std::fill_n(pid+cur_offset, cur_code.size(), cur_pid);
+
+        //add thread to player
+        players[cur_pid - 1].threads.push(Thread(cur_offset));
+        cur_offset += cur_code.size();
     }
 
     delete[] order;
@@ -98,6 +105,28 @@ Game::Game(const Json& config) : num_players(getNumPlayers(config)) {
 Game::~Game() {
     delete[] players;
 }
+
+
+void Game::run(std::ostream& log) {
+    //tell server where the warriors are
+    Json update = {{"type", "init"},{"tick", 0}};
+
+    //player has a region, server already knows what data to fill in if given starting position
+    for(uint8_t x = 0; x < num_players; ++x) {
+        const Player& player = players[x];
+
+        const uint16_t start = player.threads.front().ip;
+        //const uint16_t end = (uint16_t) //find end of pid and then distance from start to it
+        //        (std::find_if_not(pid+start, pid+0x10000, [x](int v){ return v == x + 1;}) - pid);
+
+        //std::string data = base64::encode(std::string((char*)(ram+start), end - start));
+        update["starts"].push_back(start);
+    }
+
+    log << std::setw(2) << update;
+}
+
+
 
 std::ostream& operator<<(std::ostream& os, const Game& game) {
     const size_t BUFFER_SIZE = 3;
