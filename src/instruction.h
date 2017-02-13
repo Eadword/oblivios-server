@@ -12,7 +12,7 @@ enum class AccessMode : uint8_t { DIRECT, RELATIVE };
  * @param addr Address of the start of the instruction in RAM
  */
 namespace Instruction {
-    inline OPCode getOPCode(const uint8_t* ram, uint16_t addr) {
+    inline OPCode getOPCode(const uint8_t*const ram, uint16_t addr) {
         return OPCodeFromInt(ram[addr] >> 2);
     }
 
@@ -27,21 +27,14 @@ namespace Instruction {
     }
 
     inline Location getArg1Loc(const uint8_t* ram, uint16_t addr) {
-        return LocationFromInt(ram[addr + 1] & 0x0F, false);
+        return LocationFromInt(ram[addr + 1] & 0x0F, 0);
     }
 
     inline Location getArg2Loc(const uint8_t* ram, uint16_t addr) {
-        return LocationFromInt((ram[addr + 1] & 0xF0) >> 4, true);
+        return LocationFromInt((ram[addr + 1] & 0xF0) >> 4, 1);
     }
 
-    inline uint8_t numImds(const uint8_t* ram, uint16_t addr) {
-        uint8_t count = 0;
-        Location t = getArg1Loc(ram, addr);
-        if(t == Location::IMD || t == Location::PIMD) ++count;
-        t = getArg2Loc(ram, addr);
-        if(t == Location::IMD || t == Location::PIMD) ++count;
-        return count;
-    }
+    uint8_t numImds(const uint8_t* ram, uint16_t addr);
 
     /**
      * Gets the address of the immediate for an argument.
@@ -51,14 +44,5 @@ namespace Instruction {
      * @param argn The argument number, with 1 being the first argument and 2 being the second
      * @return addr+0 if no immediates exist, addr+2, or addr+4 depending on number of immedaites and position.
      */
-    inline uint16_t getImdAddress(const uint8_t* ram, uint16_t addr, uint8_t argn) {
-        if(!argn) return 0;
-        uint8_t num_imds = Instruction::numImds(ram, addr);
-        if(!num_imds) return 0;
-
-        addr += 2; //at least 2
-        if(argn > 1) addr += 2; //4 total
-
-        return addr;
-    }
+    uint16_t getImdAddress(const uint8_t* ram, uint16_t addr, uint8_t argn);
 };

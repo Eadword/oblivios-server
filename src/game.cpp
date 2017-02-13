@@ -26,10 +26,13 @@ T readNum(const Json& j, std::string field, const int64_t min_value = INT64_MIN,
 }
 
 
-Game::Game(const Json& config) :
+Game::Game(const Json& config) : cycle(0),
         num_players(readNum<uint8_t>(config, "num_players", 1, UINT8_MAX)),
         cycles_per_turn(readNum<uint16_t>(config, "cycles_per_turn", 1, UINT16_MAX)),
-        max_cycles(readNum<int64_t>(config, "max_cycles", 1)){
+        max_cycles(readNum<int64_t>(config, "max_cycles", 1)),
+        score_for_killing_thread(readNum<uint32_t>(config, "score_for_killing_thread", 0, UINT32_MAX)),
+        score_for_killing_process(readNum<uint32_t>(config, "score_for_killing_process", 0, UINT32_MAX)),
+        score_for_owning_ram(readNum<float>(config, "score_for_owning_ram", 0, UINT32_MAX)) {
     std::fill_n(pid, 0x10000, 0);
 
     players = new Player[num_players];
@@ -115,15 +118,16 @@ Game::~Game() {
 
 
 void Game::run(std::ostream& log) {
-    sendInit(log);
-
-    uint8_t alive = num_players;
+    if(cycle == 0) {
+        sendInit(log);
+        ++cycle;
+    }
 
     //main loop, runs until only one AI continues running or max cycles is reached
-    for(uint64_t cycle = 1; alive && cycle < max_cycles - alive * cycles_per_turn; ++cycle) {
+    for(uint8_t alive = num_players; alive > 0 && cycle < max_cycles - alive * cycles_per_turn; ++cycle) {
         //run through player turns
-        for(uint8_t pid = 1; pid <= num_players; ++pid) {
-            Player& player = players[pid - 1];
+        for(uint8_t process = 1; process <= num_players; ++process) {
+            Player& player = players[process - 1];
 
             //get next thread to run
             if(player.threads.empty()) continue;
@@ -131,11 +135,26 @@ void Game::run(std::ostream& log) {
             player.threads.pop();
 
             //process instruction
-            //TODO: finish this up
-            Instruction::getOPCode(ram, thread->ip);
+            if(execIns(*thread, log)) { //successfully processed
+                //add thread back to queue
+                player.threads.push(thread);
+            }
+            else { //encountered an error, deal with thread and reward killer
+                const uint8_t cause = pid[thread->ip];
+                if(cause != process) {
+                    players[cause - 1].killed_threads++;
+                    players[cause - 1].score += score_for_killing_thread;
+                }
 
-            //add thread back to end of queue
-            player.threads.push(thread);
+                if(!player.threads.size()) { //dead
+                    --alive;
+                    if(cause != process) {
+                        players[cause - 1].killed_processes++;
+                        players[cause - 1].score += score_for_killing_process;
+                    }
+                }
+                delete thread;
+            }
         }
     }
 }
@@ -159,6 +178,10 @@ void Game::sendInit(std::ostream& log) {
     }
 
     log << update;
+}
+
+bool Game::execIns(Thread &thread, std::ostream &log) {
+    return false;
 }
 
 

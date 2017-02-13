@@ -9,7 +9,7 @@
 
 int main() {
     std::ifstream file("data/test.json");
-    if(!file) return -1;
+    if(!file) throw std::runtime_error("Could not load config file.");
     Json json;
     file >> json;
     file.close();

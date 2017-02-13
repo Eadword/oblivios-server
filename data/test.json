@@ -2,6 +2,9 @@
   "max_player_size": 4096,
   "cycles_per_turn": 100,
   "max_cycles": 100000000,
+  "score_for_killing_thread": 1000,
+  "score_for_killing_process": 1000000,
+  "score_for_owning_ram": 0.1,
   "num_players": 2,
   "player_settings": [
     { "name": "Joe" },

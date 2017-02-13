@@ -27,7 +27,7 @@ Argument::Argument(Thread& thread, uint8_t* ram, uint8_t argn) : loc_type(NONE),
         loc = Instruction::getArg2Loc(ram, thread.ip);
         mode = Instruction::getArg2Mode(ram, thread.ip);
     }
-    else throw std::invalid_argument("Invalid argument number " + argn);
+    else throw std::out_of_range("Invalid argument number " + argn);
 
     switch(loc) {
         case REGISTER(AL, ax, R8L); break;
