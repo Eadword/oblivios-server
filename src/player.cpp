@@ -1,5 +1,8 @@
 #include "player.h"
 
+#include "thread.h"
+
+
 Player::Player() : cycle_modifer(1), max_threads(32), owned_ram(0), killed_threads(0),
                    killed_processes(0), score(0) {}
 

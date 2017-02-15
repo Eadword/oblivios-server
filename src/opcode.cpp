@@ -1,8 +1,7 @@
-#include <algorithm>
-#include <fstream>
-#include <map>
-
 #include "opcode.h"
+
+#include <fstream>
+
 
 std::map<OPCode, uint32_t> OPCode_NumCycles;
 

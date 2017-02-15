@@ -1,7 +1,6 @@
-#include <stdexcept>
+#include "argument.h"
 
 #include "instruction.h"
-#include "argument.h"
 #include "thread.h"
 
 #define REGISTER(loc, reg, type)    \

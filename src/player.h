@@ -1,7 +1,13 @@
 #pragma once
+struct Thread;
+
+#include <json.hpp>
+using Json = nlohmann::json;
+
+#include <cstdint>
+#include <string>
 #include <queue>
 
-#include "thread.h"
 
 struct Player {
     // pid is defined by its index in the game array + 1

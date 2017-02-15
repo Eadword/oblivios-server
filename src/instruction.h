@@ -1,7 +1,9 @@
 #pragma once
+#include <cstdint>
 
-#include "opcode.h"
-#include "location.h"
+enum class OPCode : uint8_t;
+enum class Location : uint8_t;
+
 
 enum class AccessMode : uint8_t { DIRECT, RELATIVE };
 
@@ -12,27 +14,15 @@ enum class AccessMode : uint8_t { DIRECT, RELATIVE };
  * @param addr Address of the start of the instruction in RAM
  */
 namespace Instruction {
-    inline OPCode getOPCode(const uint8_t*const ram, uint16_t addr) {
-        return OPCodeFromInt(ram[addr] >> 2);
-    }
+    OPCode getOPCode(const uint8_t*const ram, uint16_t addr);
 
-    inline AccessMode getArg1Mode(const uint8_t* ram, uint16_t addr) {
-        //if the value is 1, return relative, otherwise direct
-        return ((ram[addr] & 0x02) >> 1) ? AccessMode::RELATIVE : AccessMode::DIRECT;
-    }
+    AccessMode getArg1Mode(const uint8_t* ram, uint16_t addr);
 
-    inline AccessMode getArg2Mode(const uint8_t* ram, uint16_t addr) {
-        //if the value is 1, return relative, otherwise direct
-        return (ram[addr] & 0x01) ? AccessMode::RELATIVE : AccessMode::DIRECT;
-    }
+    AccessMode getArg2Mode(const uint8_t* ram, uint16_t addr);
 
-    inline Location getArg1Loc(const uint8_t* ram, uint16_t addr) {
-        return LocationFromInt(ram[addr + 1] & 0x0F, 1);
-    }
+    Location getArg1Loc(const uint8_t* ram, uint16_t addr);
 
-    inline Location getArg2Loc(const uint8_t* ram, uint16_t addr) {
-        return LocationFromInt((ram[addr + 1] & 0xF0) >> 4, 2);
-    }
+    Location getArg2Loc(const uint8_t* ram, uint16_t addr);
 
     uint8_t numImds(const uint8_t* ram, uint16_t addr);
 
@@ -46,3 +36,29 @@ namespace Instruction {
      */
     uint16_t getImdAddress(const uint8_t* ram, uint16_t addr, uint8_t argn);
 };
+
+
+#include "opcode.h"
+#include "location.h"
+
+inline OPCode Instruction::getOPCode(const uint8_t*const ram, uint16_t addr) {
+    return OPCodeFromInt(ram[addr] >> 2);
+}
+
+inline AccessMode Instruction::getArg1Mode(const uint8_t* ram, uint16_t addr) {
+    //if the value is 1, return relative, otherwise direct
+    return ((ram[addr] & 0x02) >> 1) ? AccessMode::RELATIVE : AccessMode::DIRECT;
+}
+
+inline AccessMode Instruction::getArg2Mode(const uint8_t* ram, uint16_t addr) {
+    //if the value is 1, return relative, otherwise direct
+    return (ram[addr] & 0x01) ? AccessMode::RELATIVE : AccessMode::DIRECT;
+}
+
+inline Location Instruction::getArg1Loc(const uint8_t* ram, uint16_t addr) {
+    return LocationFromInt(ram[addr + 1] & 0x0F, 1);
+}
+
+inline Location Instruction::getArg2Loc(const uint8_t* ram, uint16_t addr) {
+    return LocationFromInt((ram[addr + 1] & 0xF0) >> 4, 2);
+}

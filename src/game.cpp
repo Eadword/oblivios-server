@@ -1,14 +1,14 @@
-#include <algorithm>
-#include <cstdint>
-#include <iterator>
-#include <random>
+#include "game.h"
+
+#include "argument.h"
+#include "thread.h"
+#include "instruction.h"
+#include "player.h"
 
 #include <base.hpp>
 
-#include "argument.h"
-#include "game.h"
-#include "instruction.h"
-#include "player.h"
+#include <random>
+
 
 //Used only for the Game constructor
 template<typename T>

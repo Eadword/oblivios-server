@@ -1,6 +1,6 @@
 #pragma once
+#include <cstdint>
 
-#include "opcode.h"
 
 struct Thread {
     uint16_t ax, bx, cx, ip;

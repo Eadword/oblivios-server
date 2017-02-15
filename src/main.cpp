@@ -1,10 +1,11 @@
-#include <iostream>
-#include <fstream>
-
 #include "opcode.h"
 #include "instruction.h"
 #include "argument.h"
 #include "game.h"
+
+#include <iostream>
+#include <fstream>
+
 
 int main() {
     std::ifstream file("data/default.json");
