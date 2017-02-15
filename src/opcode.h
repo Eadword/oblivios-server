@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 
+#include <json.hpp>
+using Json = nlohmann::json;
+
 enum class OPCode : uint8_t {
 #define X(val, b) val
 #include "opcodes"
@@ -26,6 +29,9 @@ inline std::string OPCodeToString(OPCode op) {
     return OPCode_Strings[(uint8_t)op];
 }
 
+/// @note this performs a linear search
+OPCode OPCodeFromString(const std::string&);
+
 inline std::ostream& operator<<(std::ostream& out, OPCode op) {
     return out << OPCodeToString(op);
 }
@@ -46,3 +52,19 @@ inline OPCode OPCodeFromInt(uint8_t op) {
  * @return The number of parameters expected
  */
 inline uint8_t getOPCodeParams(OPCode op) { return OPCode_NumParams[(uint8_t)op]; }
+
+
+/**
+ * Load
+ * @param config
+ */
+void loadOPCodeCycles(const Json& config);
+
+/**
+ * Gets the number of cycles required by an opcode to execute.
+ * @param op The opcode in question
+ * @return The number of cycles needed
+ *
+ * @warning This requires a previous call to have been made to loadOPCodeCycles
+ */
+uint32_t getOPCodeCycles(OPCode op);

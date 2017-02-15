@@ -4,8 +4,8 @@
 #include <random>
 
 #include <base.hpp>
-#include <json.hpp>
 
+#include "argument.h"
 #include "game.h"
 #include "instruction.h"
 #include "player.h"
@@ -33,8 +33,10 @@ Game::Game(const Json& config) : cycle(0),
         score_for_killing_thread(readNum<uint32_t>(config, "score_for_killing_thread", 0, UINT32_MAX)),
         score_for_killing_process(readNum<uint32_t>(config, "score_for_killing_process", 0, UINT32_MAX)),
         score_for_owning_ram(readNum<float>(config, "score_for_owning_ram", 0, UINT32_MAX)) {
-    std::fill_n(pid, 0x10000, 0);
 
+    loadOPCodeCycles(config);
+
+    std::fill_n(pid, 0x10000, 0);
     players = new Player[num_players];
 
     //Read player configuration
@@ -135,7 +137,7 @@ void Game::run(std::ostream& log) {
             player.threads.pop();
 
             //process instruction
-            if(execIns(*thread, log)) { //successfully processed
+            if(execIns(*thread, process, log)) { //successfully processed
                 //add thread back to queue
                 player.threads.push(thread);
             }
@@ -162,8 +164,7 @@ void Game::run(std::ostream& log) {
 
 void Game::sendInit(std::ostream& log) {
     //tell server where the warriors are
-    Json update = {{"type", "init"},
-                   {"cycle", 0}};
+    Json update = { {"type", "init"}, {"cycle", 0} };
 
     //player has a region, server already knows what data to fill in if given starting position
     for (uint8_t x = 0; x < num_players; ++x) {
@@ -180,7 +181,56 @@ void Game::sendInit(std::ostream& log) {
     log << update;
 }
 
-bool Game::execIns(Thread &thread, std::ostream &log) {
+bool Game::execIns(Thread &thread, const uint8_t pid, std::ostream &log) {
+    Json json = { {"type", "exec"}, {"cycle", cycle}, {"pid", pid}};
+
+    const OPCode opcode = Instruction::getOPCode(ram, thread.ip);
+    Argument arg1(thread, ram, 1);
+    Argument arg2(thread, ram, 2);
+
+    switch(opcode) {
+        case OPCode::NOP:break;
+        case OPCode::INT:break;
+        case OPCode::MOVC:break;
+        case OPCode::MOVW:break;
+        case OPCode::MOVD:break;
+        case OPCode::SWPC:break;
+        case OPCode::SWPW:break;
+        case OPCode::SWPD:break;
+        case OPCode::ADD:break;
+        case OPCode::SUB:break;
+        case OPCode::MUL:break;
+        case OPCode::IMUL:break;
+        case OPCode::DIV:break;
+        case OPCode::IDIV:break;
+        case OPCode::SHL:break;
+        case OPCode::SHR:break;
+        case OPCode::NEG:break;
+        case OPCode::NOT:break;
+        case OPCode::AND:break;
+        case OPCode::OR:break;
+        case OPCode::XOR:break;
+        case OPCode::INC:break;
+        case OPCode::DEC:break;
+        case OPCode::CMP:break;
+        case OPCode::JMP:break;
+        case OPCode::JG:break;
+        case OPCode::JGE:break;
+        case OPCode::JE:break;
+        case OPCode::JNE:break;
+        case OPCode::JL:break;
+        case OPCode::JLE:break;
+        case OPCode::JC:break;
+        case OPCode::JNC:break;
+        case OPCode::JO:break;
+        case OPCode::JNO:break;
+        case OPCode::JMPA:break;
+        case OPCode::DAT:break;
+        case OPCode::NONE:break;
+    }
+
+    json["end"] = cycle;
+    log << json;
     return false;
 }
 

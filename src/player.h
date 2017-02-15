@@ -3,10 +3,6 @@
 
 #include "thread.h"
 
-namespace nolhmann {class json;}
-using Json = nlohmann::json;
-
-
 struct Player {
     // pid is defined by its index in the game array + 1
     float cycle_modifer;

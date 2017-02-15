@@ -1,11 +1,11 @@
 #pragma once
 #include <cstdint>
 
+#include <json.hpp>
+using Json = nlohmann::json;
+
 struct Player;
 struct Thread;
-
-namespace nolhmann {class json;}
-using Json = nlohmann::json;
 
 /**
  * Abstract the game such that the server could handle more than one
@@ -40,7 +40,7 @@ class Game {
      * @param log The output stream for updates.
      * @return True if successful, false if not.
      */
-    bool execIns(Thread& thread, std::ostream& log);
+    bool execIns(Thread& thread, const uint8_t pid, std::ostream& log);
 
 public:
     Game() = delete;

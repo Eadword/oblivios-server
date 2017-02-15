@@ -27,11 +27,11 @@ namespace Instruction {
     }
 
     inline Location getArg1Loc(const uint8_t* ram, uint16_t addr) {
-        return LocationFromInt(ram[addr + 1] & 0x0F, 0);
+        return LocationFromInt(ram[addr + 1] & 0x0F, 1);
     }
 
     inline Location getArg2Loc(const uint8_t* ram, uint16_t addr) {
-        return LocationFromInt((ram[addr + 1] & 0xF0) >> 4, 1);
+        return LocationFromInt((ram[addr + 1] & 0xF0) >> 4, 2);
     }
 
     uint8_t numImds(const uint8_t* ram, uint16_t addr);

@@ -47,7 +47,7 @@ inline std::ostream& operator<<(std::ostream& out, Location l) {
  * @param argn The number of the argument, starting at 1 (currently only 1 and 2 are valid)
  * @return The Location enum value
  */
-inline Location LocationFromInt(uint8_t loc, uint8_t argn = 1) {
+inline Location LocationFromInt(uint8_t loc, const uint8_t argn = 1) {
     try {
         if(argn == 1) return Location_By_Arg2.at(loc);
         else if(argn == 2) return Location_By_Arg1.at(loc);
