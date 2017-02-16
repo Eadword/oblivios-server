@@ -14,8 +14,5 @@ uint16_t Instruction::getImdAddress(const uint8_t* ram, uint16_t addr, uint8_t a
     uint8_t num_imds = Instruction::numImds(ram, addr);
     if(!num_imds) return 0;
 
-    addr += 2; //at least 2
-    if(argn > 1) addr += 2; //4 total
-
-    return addr;
+    return addr += std::min(argn, num_imds) * 2;
 }

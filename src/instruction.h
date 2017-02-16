@@ -60,5 +60,5 @@ inline Location Instruction::getArg1Loc(const uint8_t* ram, uint16_t addr) {
 }
 
 inline Location Instruction::getArg2Loc(const uint8_t* ram, uint16_t addr) {
-    return LocationFromInt((ram[addr + 1] & 0xF0) >> 4, 2);
+    return LocationFromInt(ram[addr + 1] >> 4, 2);
 }

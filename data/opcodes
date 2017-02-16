@@ -35,5 +35,5 @@ X(JO, 1),
 X(JNO, 1),
 X(JMPA, 1),
 
-X(DAT, 1),
-X(NONE, 0)
+X(NONE, 0),
+X(DAT, 1)

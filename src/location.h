@@ -51,8 +51,8 @@ inline std::ostream& operator<<(std::ostream& out, Location l) {
  */
 inline Location LocationFromInt(uint8_t loc, const uint8_t argn = 1) {
     try {
-        if(argn == 1) return Location_By_Arg2.at(loc);
-        else if(argn == 2) return Location_By_Arg1.at(loc);
+        if(argn == 1) return Location_By_Arg1.at(loc);
+        else if(argn == 2) return Location_By_Arg2.at(loc);
         else throw std::out_of_range("Invalid argument number " + argn);
     } catch(std::invalid_argument& e) {
         return Location::NONE;

@@ -12,8 +12,10 @@ class Argument {
     /// m just stores the index into ram, r is a pointer to the register in the thread
     union { uint16_t  m; uint16_t* r; } location;
 
-    /// M refers to scalable memory/RAM, M16 refers to memory which is only 16bits,
-    /// R to registers, and NONE only happens if route value is invalid
+    /**
+     * M refers to scalable memory/RAM, M16 refers to memory which is only 16bits,
+     * R to registers, and NONE only happens if route value is invalid
+     */
     enum { M, M16, R8L, R8H, R16, NONE } loc_type;
 
     /// true if it should not be written to
