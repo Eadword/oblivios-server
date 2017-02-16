@@ -1,6 +1,9 @@
 #pragma once
+#include <cstdint>
+
 struct Player;
 struct Thread;
+enum class OPCode : uint8_t;
 
 #include <json.hpp>
 using Json = nlohmann::json;
@@ -39,7 +42,17 @@ class Game {
      * @param log The output stream for updates.
      * @return True if successful, false if not.
      */
-    bool execIns(Thread& thread, const uint8_t pid, std::ostream& log);
+    bool execIns(Thread& thread, const uint8_t pid, uint32_t& remaining_cycles, std::ostream& log);
+
+    /**
+     * Charges remaining cycles by propper ammount given the thread state and opcode.
+     * @param opcode OPCode of the current instruction
+     * @param log The output stream for updates
+     * @return True if there are extra cycles remaining, otherwise false
+     *
+     * @note Modifies thread.cycles to be new value if needed
+     */
+    uint32_t remainingCycles(Thread& thread, const uint32_t remaining_cycles, const OPCode opcode) const;
 
 public:
     Game() = delete;

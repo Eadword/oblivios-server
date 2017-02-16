@@ -1,9 +1,9 @@
 #include "game.h"
 
 #include "argument.h"
-#include "thread.h"
 #include "instruction.h"
 #include "player.h"
+#include "thread.h"
 
 #include <base.hpp>
 
@@ -25,6 +25,20 @@ T readNum(const Json& j, std::string field, const int64_t min_value = INT64_MIN,
     }
 }
 
+template<typename T>
+T readReal(const Json& j, std::string field, const double min_value = -1e99,
+          const double max_value = 1e99 ) {
+    try {
+        double t = j.at(field);
+        if(t > max_value || t < min_value) throw std::invalid_argument(field + " is out of bounds");
+        return (T)t;
+    } catch(std::out_of_range& e) {
+        throw std::invalid_argument(field + " is not set");
+    } catch(std::domain_error& e) {
+        throw std::invalid_argument(field + " is invalid");
+    }
+}
+
 
 Game::Game(const Json& config) : cycle(0),
         num_players(readNum<uint8_t>(config, "num_players", 1, UINT8_MAX)),
@@ -32,7 +46,7 @@ Game::Game(const Json& config) : cycle(0),
         max_cycles(readNum<int64_t>(config, "max_cycles", 1)),
         score_for_killing_thread(readNum<uint32_t>(config, "score_for_killing_thread", 0, UINT32_MAX)),
         score_for_killing_process(readNum<uint32_t>(config, "score_for_killing_process", 0, UINT32_MAX)),
-        score_for_owning_ram(readNum<float>(config, "score_for_owning_ram", 0, UINT32_MAX)) {
+        score_for_owning_ram(readReal<float>(config, "score_for_owning_ram", 0.0, (double)UINT32_MAX)) {
 
     loadOPCodeCycles(config);
 
@@ -132,30 +146,35 @@ void Game::run(std::ostream& log) {
             Player& player = players[process - 1];
 
             //get next thread to run
-            if(player.threads.empty()) continue;
-            Thread*const thread = player.threads.front();
+            if(player.threads.empty()) break;
+            Thread* thread = player.threads.front();
             player.threads.pop();
 
-            //process instruction
-            if(execIns(*thread, process, log)) { //successfully processed
-                //add thread back to queue
-                player.threads.push(thread);
-            }
-            else { //encountered an error, deal with thread and reward killer
-                const uint8_t cause = pid[thread->ip];
-                if(cause != process) {
-                    players[cause - 1].killed_threads++;
-                    players[cause - 1].score += score_for_killing_thread;
-                }
+            uint32_t remaining_cycles = std::max<uint32_t>((uint32_t)((double)cycles_per_turn * player.cycle_modifer), 1);
 
-                if(!player.threads.size()) { //dead
-                    --alive;
-                    if(cause != process) {
-                        players[cause - 1].killed_processes++;
-                        players[cause - 1].score += score_for_killing_process;
-                    }
+            while(remaining_cycles > 0 && thread != nullptr) {
+                //process instruction
+                if(execIns(*thread, process, remaining_cycles, log)) { //successfully processed
+                    //add thread back to queue
+                    player.threads.push(thread);
                 }
-                delete thread;
+                else { //encountered an error, deal with thread and reward killer
+                    const uint8_t cause = pid[thread->ip];
+                    if(cause && cause != process) {
+                        players[cause - 1].killed_threads++;
+                        players[cause - 1].score += score_for_killing_thread;
+                    }
+
+                    if(!player.threads.size()) { //dead
+                        --alive;
+                        if (cause != process) {
+                            players[cause - 1].killed_processes++;
+                            players[cause - 1].score += score_for_killing_process;
+                        }
+                    }
+                    delete thread;
+                    thread = nullptr;
+                }
             }
         }
     }
@@ -181,10 +200,21 @@ void Game::sendInit(std::ostream& log) {
     log << update;
 }
 
-bool Game::execIns(Thread &thread, const uint8_t pid, std::ostream &log) {
-    Json json = { {"type", "exec"}, {"cycle", cycle}, {"pid", pid}};
+bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles, std::ostream &log) {
+    const uint32_t starting_cycles = remaining_cycles;
+    Json json = { {"type", "exec"}, {"cycle", cycle}, {"pid", pid} };
 
+    json["ins"] = thread.ip;
     const OPCode opcode = Instruction::getOPCode(ram, thread.ip);
+
+    //charge cycles, the value becomes 0, we are done, but opcode did not fail so return true
+    remaining_cycles = remainingCycles(thread, remaining_cycles, opcode);
+    cycle += starting_cycles - remaining_cycles;
+    if(!remaining_cycles) {
+        log << json;
+        return true;
+    }
+
     Argument arg1(thread, ram, 1);
     Argument arg2(thread, ram, 2);
 
@@ -225,13 +255,42 @@ bool Game::execIns(Thread &thread, const uint8_t pid, std::ostream &log) {
         case OPCode::JO:break;
         case OPCode::JNO:break;
         case OPCode::JMPA:break;
-        case OPCode::DAT:break;
-        case OPCode::NONE:break;
+
+        //These should not happen, ever; a non-valid opcode is returned as a NOP
+        case OPCode::DAT: return false;
+        case OPCode::NONE: return false;
     }
 
     json["end"] = cycle;
     log << json;
+
+    //for now say the program died
     return false;
+}
+
+uint32_t Game::remainingCycles(Thread& thread, const uint32_t remaining_cycles, const OPCode opcode) const {
+    uint32_t cycle_cost;
+
+    //set cycle cost, return true if we cannot complete
+    if(thread.cycles > 0) {
+        if(remaining_cycles > thread.cycles) { //we can complete
+            //remaining cycles decremented later
+            cycle_cost = thread.cycles;
+            thread.cycles = 0;
+        }
+        else { //we will still have more left
+            thread.cycles -= remaining_cycles;
+            return 0;
+        }
+    }
+    else {
+        cycle_cost = getOPCodeCycles(opcode);
+        if(cycle_cost > remaining_cycles) {
+            thread.cycles = cycle_cost - remaining_cycles;
+            return 0;
+        }
+    }
+    return remaining_cycles - cycle_cost;
 }
 
 
