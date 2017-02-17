@@ -218,47 +218,95 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
     Argument arg1(thread, ram, 1);
     Argument arg2(thread, ram, 2);
 
-    switch(opcode) {
+    try { switch (opcode) {
         case OPCode::NOP:break;
-        case OPCode::INT:break;
-        case OPCode::MOVC:break;
-        case OPCode::MOVW:break;
-        case OPCode::MOVD:break;
-        case OPCode::SWPC:break;
-        case OPCode::SWPW:break;
-        case OPCode::SWPD:break;
-        case OPCode::ADD:break;
-        case OPCode::SUB:break;
-        case OPCode::MUL:break;
-        case OPCode::IMUL:break;
-        case OPCode::DIV:break;
-        case OPCode::IDIV:break;
-        case OPCode::SHL:break;
-        case OPCode::SHR:break;
-        case OPCode::NEG:break;
-        case OPCode::NOT:break;
-        case OPCode::AND:break;
-        case OPCode::OR:break;
-        case OPCode::XOR:break;
-        case OPCode::INC:break;
-        case OPCode::DEC:break;
-        case OPCode::CMP:break;
-        case OPCode::JMP:break;
-        case OPCode::JG:break;
-        case OPCode::JGE:break;
-        case OPCode::JE:break;
-        case OPCode::JNE:break;
-        case OPCode::JL:break;
-        case OPCode::JLE:break;
-        case OPCode::JC:break;
-        case OPCode::JNC:break;
-        case OPCode::JO:break;
-        case OPCode::JNO:break;
-        case OPCode::JMPA:break;
 
-        //These should not happen, ever; a non-valid opcode is returned as a NOP
-        case OPCode::DAT: return false;
-        case OPCode::NONE: return false;
+        case OPCode::INT:
+            //TODO: handle interrupts
+            break;
+        case OPCode::MOVC:
+            arg1.write(arg2, 8);
+            break;
+        case OPCode::MOVW:
+            arg1.write(arg2, 16);
+            break;
+        case OPCode::MOVD:
+            arg1.write(arg2, 32);
+            break;
+        case OPCode::SWPC:
+            arg1.swp(arg2, 8);
+            break;
+        case OPCode::SWPW:
+            arg1.swp(arg2, 16);
+            break;
+        case OPCode::SWPD:
+            arg1.swp(arg2, 32);
+            break;
+        case OPCode::ADD:
+            break;
+        case OPCode::SUB:
+            break;
+        case OPCode::MUL:
+            break;
+        case OPCode::IMUL:
+            break;
+        case OPCode::DIV:
+            break;
+        case OPCode::IDIV:
+            break;
+        case OPCode::SHL:
+            break;
+        case OPCode::SHR:
+            break;
+        case OPCode::NEG:
+            break;
+        case OPCode::NOT:
+            break;
+        case OPCode::AND:
+            break;
+        case OPCode::OR:
+            break;
+        case OPCode::XOR:
+            break;
+        case OPCode::INC:
+            break;
+        case OPCode::DEC:
+            break;
+        case OPCode::CMP:
+            break;
+        case OPCode::JMP:
+            break;
+        case OPCode::JG:
+            break;
+        case OPCode::JGE:
+            break;
+        case OPCode::JE:
+            break;
+        case OPCode::JNE:
+            break;
+        case OPCode::JL:
+            break;
+        case OPCode::JLE:
+            break;
+        case OPCode::JC:
+            break;
+        case OPCode::JNC:
+            break;
+        case OPCode::JO:
+            break;
+        case OPCode::JNO:
+            break;
+        case OPCode::JMPA:
+            break;
+
+        //These should not happen, ever; a non-valid opcode is currently returned as a NOP
+        case OPCode::DAT:
+        case OPCode::NONE:
+            throw std::runtime_error("Attempted to execute invalid opcode.");
+
+    } } catch(std::runtime_error& e) {
+        json["error"] = e.what();
+        return false;
     }
 
     json["end"] = cycle;

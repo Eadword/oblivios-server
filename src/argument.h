@@ -44,10 +44,11 @@ public:
     uint32_t read() const;
 
     /**
-     * Writes to this argument with data from src
+     * Writes to this argument the value of data
      * @param src Place to copy from
-     * @tparam B the number of bits to copy (8, 16, 32)
+     * @param bits the number of bits to copy (8, 16, 32)
      * @throws std::runtime_exception if this argument is read-only
+     * @throws std::invalid_argument if number of bits is invalid
      *
      * @note Uses a Bigendian interpretation of RAM
      *
@@ -55,5 +56,30 @@ public:
      *  Does not write to most significant digits if this argument is larger than the number
      *  of bits and truncates most significant when it is smaller.
      */
-    template<uint8_t B> void write(const Argument& src);
+    void write(uint32_t data, const uint8_t bits);
+
+    /**
+     * Writes to this argument with data from src
+     * @param src Place to copy from
+     * @param bits the number of bits to copy (8, 16, 32)
+     * @throws std::runtime_exception if this argument is read-only
+     * @throws std::invalid_argument if number of bits is invalid
+     *
+     * @note Uses a Bigendian interpretation of RAM
+     *
+     * @note
+     *  Does not write to most significant digits if this argument is larger than the number
+     *  of bits and truncates most significant when it is smaller.
+     */
+    void write(const Argument& src, const uint8_t bits) { write(src.read(), bits); }
+
+    /**
+     * Swaps the data stored at the location. This is not a true object swap such as std::swap,
+     * rather it is functionality for the SWPx opcodes.
+     * @param other The place to swap with
+     * @param bits The number of bits to read/write (8, 16, 32)
+     * @throws std::runtime_exception if either Argument is read-only or invalid
+     * @throws std::invalid_argument if the number of bits is invalid
+     */
+    void swp(Argument& other, const uint8_t bits);
 };

@@ -93,21 +93,21 @@ uint32_t Argument::read() const {
     return v;
 }
 
-template<uint8_t B>
-void Argument::write(const Argument& src) {
+void Argument::write(uint32_t v, const uint8_t bits) {
     if(read_only) throw std::runtime_error("Program attempted to write to read-only memory");
-    static_assert(B != 8 && B != 16 && B != 32, "Write requires either 8, 16, or 32 bits as a template parameter");
+    if(bits != 8 && bits != 16 && bits != 32)
+        throw std::invalid_argument("Write requires either 8, 16, or 32 bits as a parameter");
+    const uint16_t bytes = (uint16_t)(bits / 8);
 
-    uint32_t v = src.read();
     switch(loc_type) {
         case M:
-            for(uint16_t x = (uint16_t)(B / 8 - 1); x < B / 8; --x) {
+            for(uint16_t x = (uint16_t)(bytes - 1); x < bytes; --x) {
                 ram[location.m + x] = (uint8_t)v;
                 v >>= 8;
             }
             break;
         case M16:
-            if(B / 8 >= 2) {
+            if(bytes >= 2) {
                 ram[location.m + 1] = (uint8_t) v;
                 ram[location.m] = (uint8_t)(v >> 8);
             } else {
@@ -123,7 +123,7 @@ void Argument::write(const Argument& src) {
             *location.r += (uint16_t)(v << 8);
             break;
         case R16:
-            if(B / 8 >= 2) {
+            if(bytes >= 2) {
                 *location.r = (uint16_t)v;
             } else {
                 *location.r = (uint8_t)v;
@@ -132,4 +132,10 @@ void Argument::write(const Argument& src) {
         case NONE:
             throw std::runtime_error("Program attempted to write to invalid memory");
     }
+}
+
+void Argument::swp(Argument& other, const uint8_t bits) {
+    uint32_t t = other.read();
+    other.write(*this, bits);
+    write(t, bits);
 }
