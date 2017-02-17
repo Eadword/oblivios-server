@@ -15,7 +15,7 @@
         location.m = thread.ip + (int16_t)thread.reg;   \
     else location.m = thread.reg;
 
-Argument::Argument(Thread& thread, uint8_t* ram, uint8_t argn) : loc_type(NONE), read_only(false) {
+Argument::Argument(Thread& thread, uint8_t* ram, uint8_t argn) : ram(ram), loc_type(NONE), read_only(false) {
     Location loc;
     AccessMode mode;
     if(argn == 1) {
@@ -61,5 +61,75 @@ Argument::Argument(Thread& thread, uint8_t* ram, uint8_t argn) : loc_type(NONE),
             break;
 
         case Location::NONE: throw std::invalid_argument("Invalid location"); break;
+    }
+}
+
+uint32_t Argument::read() const {
+    uint32_t v = 0x00000000;
+    switch(loc_type) {
+        case M:
+            for(uint16_t x = 0; x < 4; ++x) {
+                v <<= 8;
+                v += ram[location.m + x];
+            }
+            break;
+        case M16:
+            v = ram[location.m];
+            v <<= 8;
+            v += ram[location.m + 1];
+            break;
+        case R8L:
+            v = (uint8_t)(*location.r);
+            break;
+        case R8H:
+            v = *location.r >> 8;
+            break;
+        case R16:
+            v = *location.r;
+            break;
+        case NONE:
+            throw std::runtime_error("Program attempted to read from invalid memory");
+    }
+    return v;
+}
+
+template<uint8_t B>
+void Argument::write(const Argument& src) {
+    if(read_only) throw std::runtime_error("Program attempted to write to read-only memory");
+    static_assert(B != 8 && B != 16 && B != 32, "Write requires either 8, 16, or 32 bits as a template parameter");
+
+    uint32_t v = src.read();
+    switch(loc_type) {
+        case M:
+            for(uint16_t x = (uint16_t)(B / 8 - 1); x < B / 8; --x) {
+                ram[location.m + x] = (uint8_t)v;
+                v >>= 8;
+            }
+            break;
+        case M16:
+            if(B / 8 >= 2) {
+                ram[location.m + 1] = (uint8_t) v;
+                ram[location.m] = (uint8_t)(v >> 8);
+            } else {
+                ram[location.m] = (uint8_t)v;
+            }
+            break;
+        case R8L:
+            *location.r &= 0xFF00;
+            *location.r += (uint8_t)v;
+            break;
+        case R8H:
+            *location.r &= 0x00FF;
+            *location.r += (uint16_t)(v << 8);
+            break;
+        case R16:
+            if(B / 8 >= 2) {
+                *location.r = (uint16_t)v;
+            } else {
+                *location.r = (uint8_t)v;
+            }
+            break;
+        case NONE:
+            throw std::runtime_error("Program attempted to write to invalid memory");
     }
 }
