@@ -37,16 +37,16 @@ public:
 
 
     /**
-     * Reads up to 32 bits. If the data stores less, it will pad the most significant bits with 0s.
+     * Reads up to 16 bits. If the data stores less, it will pad the most significant bits with 0s.
      * @throws std::runtime_error if the memory is invalid and cannot be read.
      * @return The value read.
      */
-    uint32_t read() const;
+    uint16_t read() const;
 
     /**
      * Writes to this argument the value of data
      * @param src Place to copy from
-     * @param bits the number of bits to copy (8, 16, 32)
+     * @param memforce8 Forces a write to memory to use only 8 bits instead of 16 bits
      * @throws std::runtime_exception if this argument is read-only
      * @throws std::invalid_argument if number of bits is invalid
      *
@@ -56,22 +56,13 @@ public:
      *  Does not write to most significant digits if this argument is larger than the number
      *  of bits and truncates most significant when it is smaller.
      */
-    void write(uint32_t data, const uint8_t bits);
+    void write(uint16_t data, const bool memforce8 = true);
 
     /**
      * Writes to this argument with data from src
-     * @param src Place to copy from
-     * @param bits the number of bits to copy (8, 16, 32)
-     * @throws std::runtime_exception if this argument is read-only
-     * @throws std::invalid_argument if number of bits is invalid
-     *
-     * @note Uses a Bigendian interpretation of RAM
-     *
-     * @note
-     *  Does not write to most significant digits if this argument is larger than the number
-     *  of bits and truncates most significant when it is smaller.
+     * @see write(uint32_t, uint8_t)
      */
-    void write(const Argument& src, const uint8_t bits) { write(src.read(), bits); }
+    inline void write(const Argument& src) { write(src.read(), src.loc_type == M); }
 
     /**
      * Swaps the data stored at the location. This is not a true object swap such as std::swap,
@@ -81,5 +72,5 @@ public:
      * @throws std::runtime_exception if either Argument is read-only or invalid
      * @throws std::invalid_argument if the number of bits is invalid
      */
-    void swp(Argument& other, const uint8_t bits);
+    void swp(Argument& other);
 };

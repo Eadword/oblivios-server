@@ -8,7 +8,6 @@ enum class OPCode : uint8_t;
 #include <json.hpp>
 using Json = nlohmann::json;
 
-
 /**
  * Abstract the game such that the server could handle more than one
  */

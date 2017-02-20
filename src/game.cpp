@@ -224,23 +224,11 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
         case OPCode::INT:
             //TODO: handle interrupts
             break;
-        case OPCode::MOVC:
-            arg1.write(arg2, 8);
+        case OPCode::MOV:
+            arg1.write(arg2);
             break;
-        case OPCode::MOVW:
-            arg1.write(arg2, 16);
-            break;
-        case OPCode::MOVD:
-            arg1.write(arg2, 32);
-            break;
-        case OPCode::SWPC:
-            arg1.swp(arg2, 8);
-            break;
-        case OPCode::SWPW:
-            arg1.swp(arg2, 16);
-            break;
-        case OPCode::SWPD:
-            arg1.swp(arg2, 32);
+        case OPCode::SWP:
+            arg1.swp(arg2);
             break;
         case OPCode::ADD:
             break;

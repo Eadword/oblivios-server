@@ -53,7 +53,7 @@ Argument::Argument(Thread& thread, uint8_t* ram, uint8_t argn) : ram(ram), loc_t
             loc_type = M;
             if(mode == AccessMode::RELATIVE) {
                 //add to the ip the value stored in the memory location of the immediate value
-                location.m = thread.ip + (uint16_t) ram[Instruction::getImdAddress(ram, thread.ip, argn)];
+                location.m = thread.ip + (uint16_t)ram[Instruction::getImdAddress(ram, thread.ip, argn)];
             } else {
                 //take the value of immediate as the address
                 location.m = ram[Instruction::getImdAddress(ram, thread.ip, argn)];
@@ -64,19 +64,11 @@ Argument::Argument(Thread& thread, uint8_t* ram, uint8_t argn) : ram(ram), loc_t
     }
 }
 
-uint32_t Argument::read() const {
-    uint32_t v = 0x00000000;
+uint16_t Argument::read() const {
+    uint16_t v = 0x0000;
     switch(loc_type) {
-        case M:
-            for(uint16_t x = 0; x < 4; ++x) {
-                v <<= 8;
-                v += ram[location.m + x];
-            }
-            break;
-        case M16:
-            v = ram[location.m];
-            v <<= 8;
-            v += ram[location.m + 1];
+        case R16:
+            v = *location.r;
             break;
         case R8L:
             v = (uint8_t)(*location.r);
@@ -84,8 +76,10 @@ uint32_t Argument::read() const {
         case R8H:
             v = *location.r >> 8;
             break;
-        case R16:
-            v = *location.r;
+        case M: case M16:
+            v += ram[location.m];
+            v <<= 8;
+            v += ram[(uint16_t)(location.m + 1)];
             break;
         case NONE:
             throw std::runtime_error("Program attempted to read from invalid memory");
@@ -93,26 +87,12 @@ uint32_t Argument::read() const {
     return v;
 }
 
-void Argument::write(uint32_t v, const uint8_t bits) {
+void Argument::write(uint16_t v, const bool memforce8) {
     if(read_only) throw std::runtime_error("Program attempted to write to read-only memory");
-    if(bits != 8 && bits != 16 && bits != 32)
-        throw std::invalid_argument("Write requires either 8, 16, or 32 bits as a parameter");
-    const uint16_t bytes = (uint16_t)(bits / 8);
 
     switch(loc_type) {
-        case M:
-            for(uint16_t x = (uint16_t)(bytes - 1); x < bytes; --x) {
-                ram[location.m + x] = (uint8_t)v;
-                v >>= 8;
-            }
-            break;
-        case M16:
-            if(bytes >= 2) {
-                ram[location.m + 1] = (uint8_t) v;
-                ram[location.m] = (uint8_t)(v >> 8);
-            } else {
-                ram[location.m] = (uint8_t)v;
-            }
+        case R16:
+            *location.r = v;
             break;
         case R8L:
             *location.r &= 0xFF00;
@@ -120,22 +100,25 @@ void Argument::write(uint32_t v, const uint8_t bits) {
             break;
         case R8H:
             *location.r &= 0x00FF;
-            *location.r += (uint16_t)(v << 8);
+            *location.r += (v << 8);
             break;
-        case R16:
-            if(bytes >= 2) {
-                *location.r = (uint16_t)v;
-            } else {
-                *location.r = (uint8_t)v;
+        case M:
+            if(memforce8) {
+                ram[location.m] = (uint8_t) v;
+                break;
             }
+            // else follow M16 case
+        case M16:
+            ram[(uint16_t)(location.m + 1)] = (uint8_t)v;
+            ram[location.m] = (uint8_t)(v >> 8);
             break;
         case NONE:
             throw std::runtime_error("Program attempted to write to invalid memory");
     }
 }
 
-void Argument::swp(Argument& other, const uint8_t bits) {
-    uint32_t t = other.read();
-    other.write(*this, bits);
-    write(t, bits);
+void Argument::swp(Argument& other) {
+    uint16_t t = other.read();
+    other.write(*this);
+    write(t, other.loc_type == M);
 }

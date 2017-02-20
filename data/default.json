@@ -10,7 +10,7 @@
     { "name": "Joe" },
     { "cycle_modifer": 1, "max_threads": 3 }
   ],
-  "warriors": ["DKb/3gAAIHYN5//8YAn/9FYN//Q=", "DKb/3gAAIHYN5//8YAn/9FYN//Q="],
+  "warriors": ["CKb/3gAAEHYJ5//8UAn/9EYN//Q=", "CKb/3gAAEHYJ5//8UAn/9EYN//Q="],
   "cycles": {
     "NOP": 1,
     "INT": 16,
