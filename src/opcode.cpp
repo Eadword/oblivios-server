@@ -15,7 +15,7 @@ OPCode OPCodeFromString(const std::string& s) {
 }
 
 void loadOPCodeCycles(const Json& config) {
-    const Json& cycles = config.at("cycles");
+    const Json& cycles = config.at("op_cycles");
     if(!cycles.is_object()) return;
     for(auto&& itr = cycles.begin(); itr != cycles.end(); ++itr) {
         const OPCode op = OPCodeFromString(itr.key());

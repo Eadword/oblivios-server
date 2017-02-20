@@ -44,6 +44,7 @@ Game::Game(const Json& config) : cycle(0),
         num_players(readNum<uint8_t>(config, "num_players", 1, UINT8_MAX)),
         cycles_per_turn(readNum<uint16_t>(config, "cycles_per_turn", 1, UINT16_MAX)),
         max_cycles(readNum<int64_t>(config, "max_cycles", 1)),
+        ram_access_cycles(readNum<uint16_t>(config, "ram_access_cycles", 0, UINT16_MAX)),
         score_for_killing_thread(readNum<uint32_t>(config, "score_for_killing_thread", 0, UINT32_MAX)),
         score_for_killing_process(readNum<uint32_t>(config, "score_for_killing_process", 0, UINT32_MAX)),
         score_for_owning_ram(readReal<float>(config, "score_for_owning_ram", 0.0, (double)UINT32_MAX)) {
@@ -207,16 +208,16 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
     json["ins"] = thread.ip;
     const OPCode opcode = Instruction::getOPCode(ram, thread.ip);
 
+    Argument arg1(thread, ram, 1);
+    Argument arg2(thread, ram, 2);
+
     //charge cycles, the value becomes 0, we are done, but opcode did not fail so return true
-    remaining_cycles = remainingCycles(thread, remaining_cycles, opcode);
+    remaining_cycles = remainingCycles(thread, remaining_cycles, opcode, arg1.isMem(), arg2.isMem());
     cycle += starting_cycles - remaining_cycles;
     if(!remaining_cycles) {
         log << json;
         return true;
     }
-
-    Argument arg1(thread, ram, 1);
-    Argument arg2(thread, ram, 2);
 
     try { switch (opcode) {
         case OPCode::NOP:break;
@@ -304,7 +305,8 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
     return false;
 }
 
-uint32_t Game::remainingCycles(Thread& thread, const uint32_t remaining_cycles, const OPCode opcode) const {
+uint32_t Game::remainingCycles(Thread& thread, const uint32_t remaining_cycles, const OPCode opcode,
+                               const bool arg1m, const bool arg2m) const {
     uint32_t cycle_cost;
 
     //set cycle cost, return true if we cannot complete
@@ -321,6 +323,8 @@ uint32_t Game::remainingCycles(Thread& thread, const uint32_t remaining_cycles, 
     }
     else {
         cycle_cost = getOPCodeCycles(opcode);
+        if(arg1m) cycle_cost += ram_access_cycles;
+        if(arg2m) cycle_cost += ram_access_cycles;
         if(cycle_cost > remaining_cycles) {
             thread.cycles = cycle_cost - remaining_cycles;
             return 0;

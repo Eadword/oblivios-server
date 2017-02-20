@@ -20,6 +20,7 @@ class Game {
 
     const uint16_t cycles_per_turn;
     const int64_t max_cycles;
+    const uint16_t ram_access_cycles;
     const uint32_t score_for_killing_thread;
     const uint32_t score_for_killing_process;
     const float score_for_owning_ram;
@@ -51,7 +52,8 @@ class Game {
      *
      * @note Modifies thread.cycles to be new value if needed
      */
-    uint32_t remainingCycles(Thread& thread, const uint32_t remaining_cycles, const OPCode opcode) const;
+    uint32_t remainingCycles(Thread& thread, const uint32_t remaining_cycles, const OPCode opcode,
+                             const bool arg1m, const bool arg2m) const;
 
 public:
     Game() = delete;

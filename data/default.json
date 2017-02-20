@@ -2,6 +2,7 @@
   "max_player_size": 4096,
   "cycles_per_turn": 100,
   "max_cycles": 100000000,
+  "ram_access_cycles": 8,
   "score_for_killing_thread": 1000,
   "score_for_killing_process": 1000000,
   "score_for_owning_ram": 0.1,
@@ -11,15 +12,11 @@
     { "cycle_modifer": 1, "max_threads": 3 }
   ],
   "warriors": ["CKb/3gAAEHYJ5//8UAn/9EYN//Q=", "CKb/3gAAEHYJ5//8UAn/9EYN//Q="],
-  "cycles": {
+  "op_cycles": {
     "NOP": 1,
     "INT": 16,
-    "MOVC": 2,
-    "MOVW": 2,
-    "MOVD": 2,
-    "SWPC": 6,
-    "SWPW": 6,
-    "SWPD": 6,
+    "MOV": 2,
+    "SWP": 6,
     "ADD": 4,
     "SUB": 4,
     "MUL": 5,

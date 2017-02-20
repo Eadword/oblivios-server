@@ -62,7 +62,12 @@ public:
      * Writes to this argument with data from src
      * @see write(uint32_t, uint8_t)
      */
-    inline void write(const Argument& src) { write(src.read(), src.loc_type == M); }
+    inline void write(const Argument& src) { write(src.read(), src.isMem()); }
+
+    /**
+     * @return True iff the data is stored in RAM, excluding immediate values.
+     */
+    inline bool isMem() const { return loc_type == M; }
 
     /**
      * Swaps the data stored at the location. This is not a true object swap such as std::swap,
