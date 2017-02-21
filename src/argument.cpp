@@ -87,7 +87,7 @@ uint16_t Argument::read() const {
     return v;
 }
 
-void Argument::write(uint16_t v, const bool memforce8) {
+uint16_t Argument::write(uint16_t v, const bool memforce8) {
     if(read_only) throw std::runtime_error("Program attempted to write to read-only memory");
 
     switch(loc_type) {
@@ -96,15 +96,18 @@ void Argument::write(uint16_t v, const bool memforce8) {
             break;
         case R8L:
             *location.r &= 0xFF00;
-            *location.r += (uint8_t)v;
+            v &= 0x00FF;
+            *location.r += v;
             break;
         case R8H:
             *location.r &= 0x00FF;
-            *location.r += (v << 8);
+            v <<= 8;
+            *location.r += v;
             break;
         case M:
             if(memforce8) {
-                ram[location.m] = (uint8_t) v;
+                v &= 0x00FF;
+                ram[location.m] = (uint8_t)v;
                 break;
             }
             // else follow M16 case
@@ -115,10 +118,42 @@ void Argument::write(uint16_t v, const bool memforce8) {
         case NONE:
             throw std::runtime_error("Program attempted to write to invalid memory");
     }
+    return v;
 }
 
 void Argument::swp(Argument& other) {
     uint16_t t = other.read();
     other.write(*this);
     write(t, other.loc_type == M);
+}
+
+bool Argument::is8Bit() const {
+    switch(loc_type) {
+        case M: case R8L: case R8H:
+            return true;
+
+        case M16: case R16: case NONE:
+            return false;
+    }
+}
+
+bool Argument::sign() const {
+    switch(loc_type) {
+        case M: case M16:
+            return (ram[location.m] & 0x80) != 0;
+        case R16: case R8H:
+            return (*location.r & 0x8000) != 0;
+        case R8L:
+            return (*location.r & 0x0080) != 0;
+        case NONE: return false;
+    }
+}
+
+uint16_t Argument::neg(const bool memforce8) {
+    uint16_t v = read();
+    if(sign()) v = (uint16_t)(~v - 1);
+    else       v = (uint16_t)(~v + 1);
+
+    //if only writing 8bits, it should still be valid
+    return write(v, memforce8);
 }

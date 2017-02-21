@@ -53,7 +53,7 @@ class Game {
      * @note Modifies thread.cycles to be new value if needed
      */
     uint32_t remainingCycles(Thread& thread, const uint32_t remaining_cycles, const OPCode opcode,
-                             const bool arg1m, const bool arg2m) const;
+                             const bool arg18, const bool arg28) const;
 
 public:
     Game() = delete;

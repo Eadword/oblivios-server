@@ -35,7 +35,6 @@ public:
      */
     Argument(Thread& thread, uint8_t* ram, uint8_t argn = 1);
 
-
     /**
      * Reads up to 16 bits. If the data stores less, it will pad the most significant bits with 0s.
      * @throws std::runtime_error if the memory is invalid and cannot be read.
@@ -55,19 +54,34 @@ public:
      * @note
      *  Does not write to most significant digits if this argument is larger than the number
      *  of bits and truncates most significant when it is smaller.
+     *
+     * @return The value written.
      */
-    void write(uint16_t data, const bool memforce8 = true);
+    uint16_t write(uint16_t data, bool memforce8 = true);
 
     /**
      * Writes to this argument with data from src
      * @see write(uint32_t, uint8_t)
+     * @return The value written
      */
-    inline void write(const Argument& src) { write(src.read(), src.isMem()); }
+    inline uint16_t write(const Argument& src);
 
     /**
-     * @return True iff the data is stored in RAM, excluding immediate values.
+     * @return True if the data stored is 8bits and not 16.
      */
-    inline bool isMem() const { return loc_type == M; }
+    bool is8Bit() const;
+
+    /**
+     * Checks the sign of the value.
+     * @return True if negative, else false.
+     */
+    bool sign() const;
+
+    /**
+     * Performs a 2's compliment negation.
+     * @return The negated value.
+     */
+    uint16_t neg(bool memforce8 = true);
 
     /**
      * Swaps the data stored at the location. This is not a true object swap such as std::swap,
@@ -79,3 +93,9 @@ public:
      */
     void swp(Argument& other);
 };
+
+
+
+uint16_t Argument::write(const Argument& src) {
+    return write(src.read(), src.is8Bit());
+}

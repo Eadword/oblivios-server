@@ -10,6 +10,32 @@
 #include <random>
 
 
+/**
+ * Perform an ADD operation.
+ * @param thread Current thread with flag values.
+ * @param arg1 The argument which will store the result and be added.
+ * @param arg2 The argument which is being added to the first.
+ * @param json Running Json obj to write updates to.
+ */
+void add(Thread& thread, Argument& arg1, const Argument& arg2, Json& json) {
+    //TODO: record actions to json
+    const uint16_t arg1v = arg1.read();
+    const uint16_t arg2v = arg2.read();
+    const bool arg1s = arg1.sign();
+    const bool arg2s = arg2.sign();
+
+    const uint16_t sum = arg1.write(arg1v + arg2v, arg2.is8Bit());
+
+    thread.c = (sum < arg1v || sum < arg2v);
+    thread.s = arg1s;
+    thread.z = !sum;
+
+    //overflow if both args have same sign and the arg has a sign which is the opposite
+    thread.o = (arg1s == arg2s && arg1.sign() != arg1s);
+}
+
+
+
 //Used only for the Game constructor
 template<typename T>
 T readNum(const Json& j, std::string field, const int64_t min_value = INT64_MIN,
@@ -212,7 +238,7 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
     Argument arg2(thread, ram, 2);
 
     //charge cycles, the value becomes 0, we are done, but opcode did not fail so return true
-    remaining_cycles = remainingCycles(thread, remaining_cycles, opcode, arg1.isMem(), arg2.isMem());
+    remaining_cycles = remainingCycles(thread, remaining_cycles, opcode, arg1.is8Bit(), arg2.is8Bit());
     cycle += starting_cycles - remaining_cycles;
     if(!remaining_cycles) {
         log << json;
@@ -232,8 +258,11 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
             arg1.swp(arg2);
             break;
         case OPCode::ADD:
+            add(thread, arg1, arg2, json);
             break;
         case OPCode::SUB:
+            arg2.neg();
+            add(thread, arg1, arg2, json);
             break;
         case OPCode::MUL:
             break;
@@ -306,7 +335,7 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
 }
 
 uint32_t Game::remainingCycles(Thread& thread, const uint32_t remaining_cycles, const OPCode opcode,
-                               const bool arg1m, const bool arg2m) const {
+                               const bool arg18, const bool arg28) const {
     uint32_t cycle_cost;
 
     //set cycle cost, return true if we cannot complete
@@ -323,8 +352,8 @@ uint32_t Game::remainingCycles(Thread& thread, const uint32_t remaining_cycles, 
     }
     else {
         cycle_cost = getOPCodeCycles(opcode);
-        if(arg1m) cycle_cost += ram_access_cycles;
-        if(arg2m) cycle_cost += ram_access_cycles;
+        if(arg18) cycle_cost += ram_access_cycles;
+        if(arg28) cycle_cost += ram_access_cycles;
         if(cycle_cost > remaining_cycles) {
             thread.cycles = cycle_cost - remaining_cycles;
             return 0;
