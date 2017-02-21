@@ -27,13 +27,36 @@ void add(Thread& thread, Argument& arg1, const Argument& arg2, Json& json) {
     const uint16_t sum = arg1.write(arg1v + arg2v, arg2.is8Bit());
 
     thread.c = (sum < arg1v || sum < arg2v);
-    thread.s = arg1s;
+    thread.s = arg1.sign();
     thread.z = !sum;
 
     //overflow if both args have same sign and the arg has a sign which is the opposite
     thread.o = (arg1s == arg2s && arg1.sign() != arg1s);
 }
 
+/**
+ * Perform an SUB operation.
+ * @param thread Current thread with flag values.
+ * @param arg1 The argument which will store the result and be subtracted from.
+ * @param arg2 The argument which is subtracted from the first.
+ * @param json Running Json obj to write updates to.
+ */
+void sub(Thread& thread, Argument& arg1, const Argument& arg2, Json& json) {
+    //TODO: record actions to json
+    const uint16_t arg1v = arg1.read();
+    const uint16_t arg2v = arg2.read();
+    const bool arg1s = arg1.sign();
+    const bool arg2s = arg2.sign();
+
+    const uint16_t dif = arg1.write(arg1v - arg2v, arg2.is8Bit());
+
+    thread.c = (dif > arg1v);
+    thread.s = arg1.sign();
+    thread.z = !dif;
+
+    //overflow if both args have same sign and the result has a sign which is the opposite
+    thread.o = (arg1s == arg2s && arg1.sign() != arg1s);
+}
 
 
 //Used only for the Game constructor
@@ -261,8 +284,7 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
             add(thread, arg1, arg2, json);
             break;
         case OPCode::SUB:
-            arg2.neg();
-            add(thread, arg1, arg2, json);
+            sub(thread, arg1, arg2, json);
             break;
         case OPCode::MUL:
             break;

@@ -151,7 +151,7 @@ bool Argument::sign() const {
 
 uint16_t Argument::neg(const bool memforce8) {
     uint16_t v = read();
-    if(sign()) v = (uint16_t)(~v - 1);
+    if(sign()) v = ~((uint16_t)(v - 1));
     else       v = (uint16_t)(~v + 1);
 
     //if only writing 8bits, it should still be valid
