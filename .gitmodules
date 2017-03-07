@@ -1,6 +1,9 @@
 [submodule "json"]
-	path = json
+	path = lib/json
 	url = git@github.com:nlohmann/json.git
 [submodule "base"]
-	path = base
+	path = lib/base
 	url = git@github.com:r-lyeh/base.git
+[submodule "test/googletest"]
+	path = test/lib/googletest
+	url = git@github.com:google/googletest.git
