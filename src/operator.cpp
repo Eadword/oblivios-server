@@ -3,7 +3,19 @@
 #include "argument.h"
 #include "thread.h"
 
-void Operator::add(Thread& thread, Argument& arg1, const Argument& arg2, Json& json) {
+void Operator::int_(Thread& thread, Argument& arg1, Argument& arg2) {
+    //TODO: handle interrupts
+}
+
+void Operator::mov(Argument& arg1, const Argument& arg2) {
+    arg1.write(arg2);
+}
+
+void Operator::swp(Argument& arg1, Argument& arg2) {
+    arg1.swp(arg2);
+}
+
+void Operator::add(Thread& thread, Argument& arg1, const Argument& arg2) {
     //TODO: record actions to json
     const uint16_t arg1v = arg1.read();
     const uint16_t arg2v = arg2.read();
@@ -20,7 +32,7 @@ void Operator::add(Thread& thread, Argument& arg1, const Argument& arg2, Json& j
     thread.o = (arg1s == arg2s && arg1.sign() != arg1s);
 }
 
-void Operator::sub(Thread& thread, Argument& arg1, const Argument& arg2, Json& json) {
+void Operator::sub(Thread& thread, Argument& arg1, const Argument& arg2) {
     //TODO: record actions to json
     const uint16_t arg1v = arg1.read();
     const uint16_t arg2v = arg2.read();

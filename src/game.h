@@ -18,9 +18,11 @@ class Game {
     uint8_t pid[0x10000];
     uint64_t cycle;
 
+    //TODO: Create GameSettings Object to handle all of this crap
     const uint16_t cycles_per_turn;
     const int64_t max_cycles;
     const uint16_t ram_access_cycles;
+    const uint16_t ram_double_access_penalty;
     const uint32_t score_for_killing_thread;
     const uint32_t score_for_killing_process;
     const float score_for_owning_ram;
@@ -45,15 +47,17 @@ class Game {
     bool execIns(Thread& thread, const uint8_t pid, uint32_t& remaining_cycles, std::ostream& log);
 
     /**
-     * Charges remaining cycles by propper ammount given the thread state and opcode.
-     * @param opcode OPCode of the current instruction
-     * @param log The output stream for updates
-     * @return True if there are extra cycles remaining, otherwise false
+     * Charges remaining cycles by proper amount given the thread state and opcode.
+     * @param opcode OPCode of the current instruction.
+     * @param arg1m Is arg1 a memory location?
+     * @param arg2m Is arg2 a memory location?
+     * @return True if the operation can be completed, false otherwise.
      *
      * @note Modifies thread.cycles to be new value if needed
+     * @note Modifies remaining_cycles to be new value
      */
-    uint32_t remainingCycles(Thread& thread, const uint32_t remaining_cycles, const OPCode opcode,
-                             const bool arg18, const bool arg28) const;
+    bool remainingCycles(Thread& thread, uint32_t& remaining_cycles, const OPCode opcode,
+                             const bool arg1m, const bool arg2m) const;
 
 public:
     Game() = delete;

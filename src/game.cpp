@@ -45,6 +45,7 @@ Game::Game(const Json& config) : cycle(0),
         cycles_per_turn(readNum<uint16_t>(config, "cycles_per_turn", 1, UINT16_MAX)),
         max_cycles(readNum<int64_t>(config, "max_cycles", 1)),
         ram_access_cycles(readNum<uint16_t>(config, "ram_access_cycles", 0, UINT16_MAX)),
+        ram_double_access_penalty(readNum<uint16_t>(config, "ram_double_access_penalty", 0, UINT16_MAX)),
         score_for_killing_thread(readNum<uint32_t>(config, "score_for_killing_thread", 0, UINT32_MAX)),
         score_for_killing_process(readNum<uint32_t>(config, "score_for_killing_process", 0, UINT32_MAX)),
         score_for_owning_ram(readReal<float>(config, "score_for_owning_ram", 0.0, (double)UINT32_MAX)) {
@@ -212,7 +213,7 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
     Argument arg2(thread, ram, 2);
 
     //charge cycles, the value becomes 0, we are done, but opcode did not fail so return true
-    remaining_cycles = remainingCycles(thread, remaining_cycles, opcode, arg1.is8Bit(), arg2.is8Bit());
+    bool completable = remainingCycles(thread, remaining_cycles, opcode, arg1.isMem(), arg2.isMem());
     cycle += starting_cycles - remaining_cycles;
     if(!remaining_cycles) {
         log << json;
@@ -223,19 +224,19 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
         case OPCode::NOP:break;
 
         case OPCode::INT:
-            //TODO: handle interrupts
+            Operator::int_(thread, arg1, arg2);
             break;
         case OPCode::MOV:
-            arg1.write(arg2);
+            Operator::mov(arg1, arg2);
             break;
         case OPCode::SWP:
-            arg1.swp(arg2);
+            Operator::swp(arg1, arg2);
             break;
         case OPCode::ADD:
-            Operator::add(thread, arg1, arg2, json);
+            Operator::add(thread, arg1, arg2);
             break;
         case OPCode::SUB:
-            Operator::sub(thread, arg1, arg2, json);
+            Operator::sub(thread, arg1, arg2);
             break;
         case OPCode::MUL:
             break;
@@ -307,12 +308,12 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
     return false;
 }
 
-uint32_t Game::remainingCycles(Thread& thread, const uint32_t remaining_cycles, const OPCode opcode,
-                               const bool arg18, const bool arg28) const {
+bool Game::remainingCycles(Thread& thread, uint32_t& remaining_cycles, const OPCode opcode,
+                               const bool arg1m, const bool arg2m) const {
     uint32_t cycle_cost;
 
-    //set cycle cost, return true if we cannot complete
-    if(thread.cycles > 0) {
+    //set cycle cost, return false if we cannot complete
+    if(thread.cycles > 0) { //we have leftovers
         if(remaining_cycles > thread.cycles) { //we can complete
             //remaining cycles decremented later
             cycle_cost = thread.cycles;
@@ -320,19 +321,24 @@ uint32_t Game::remainingCycles(Thread& thread, const uint32_t remaining_cycles, 
         }
         else { //we will still have more left
             thread.cycles -= remaining_cycles;
-            return 0;
+            remaining_cycles = 0;
+            return false;
         }
     }
-    else {
+    else { //nothing was left over
         cycle_cost = getOPCodeCycles(opcode);
-        if(arg18) cycle_cost += ram_access_cycles;
-        if(arg28) cycle_cost += ram_access_cycles;
+
+        if(arg1m) cycle_cost += ram_access_cycles;
+        if(arg2m) cycle_cost += ram_access_cycles;
+        if(arg1m && arg2m) cycle_cost += ram_double_access_penalty;
+
         if(cycle_cost > remaining_cycles) {
             thread.cycles = cycle_cost - remaining_cycles;
             return 0;
         }
     }
-    return remaining_cycles - cycle_cost;
+    remaining_cycles -= cycle_cost;
+    return true;
 }
 
 

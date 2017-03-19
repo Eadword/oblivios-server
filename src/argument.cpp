@@ -129,6 +129,7 @@ void Argument::swp(Argument& other) {
 
 bool Argument::is8Bit() const {
     switch(loc_type) {
+        //technically M is defaulted to 8bit, but can be 16bit
         case M: case R8L: case R8H:
             return true;
 
