@@ -137,6 +137,20 @@ bool Argument::is8Bit() const {
     }
 }
 
+bool Argument::isMem() const {
+    switch(loc_type) {
+        case M: case M16:
+            return true;
+
+        case R8L: case R8H: case R16: case NONE:
+            return false;
+    }
+}
+
+bool Argument::isReg() const {
+    return !isMem();
+}
+
 bool Argument::sign() const {
     switch(loc_type) {
         case M: case M16:

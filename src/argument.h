@@ -7,6 +7,8 @@ struct Thread;
 /**
  * An abstraction to allow handling all arguments no matter where they are in the same way.
  * The thread must be valid when using this class.
+ *
+ * @see operator namespace which performs many operations on one or more arguments.
  */
 class Argument {
     /// stores reference to game's ram to reduce number of params
@@ -23,6 +25,7 @@ class Argument {
 
     /// true if it should not be written to
     bool read_only;
+
 public:
     Argument() = delete;
 
@@ -70,6 +73,16 @@ public:
      * @return True if the data stored is 8bits and not 16.
      */
     bool is8Bit() const;
+
+    /**
+     * @return True if the data is in memory (RAM).
+     */
+    bool isMem() const;
+
+    /**
+     * @return True if the data is in a register.
+     */
+    bool isReg() const;
 
     /**
      * Checks the sign of the value.
