@@ -215,10 +215,13 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
     //charge cycles, the value becomes 0, we are done, but opcode did not fail so return true
     bool completable = remainingCycles(thread, remaining_cycles, opcode, arg1.isMem(), arg2.isMem());
     cycle += starting_cycles - remaining_cycles;
-    if(!remaining_cycles) {
+    if(!completable) {
         log << json;
         return true;
     }
+
+    //inc IP now that we have read the instruction and decided to process it
+    thread.ip += Instruction::getSize(ram, thread.ip);
 
     try { switch (opcode) {
         case OPCode::NOP:break;

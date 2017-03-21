@@ -8,11 +8,17 @@
     loc_type = type;                \
     location.r = &thread.reg;
 
-#define REGISTER_PTR(loc, reg)                          \
-    Location::loc:                                      \
-    loc_type = M;                                       \
-    if(mode == AccessMode::RELATIVE)                    \
-        location.m = thread.ip + (int16_t)thread.reg;   \
+//size of the current instruction, needed in relative addressing because the IP will not be
+// incremented until after the arguments are determined.
+#define INS_SIZE Instruction::getSize(ram, thread.ip)
+
+#define REGISTER_PTR(loc, reg)           \
+    Location::loc:                       \
+    loc_type = M;                        \
+    if(mode == AccessMode::RELATIVE)     \
+        location.m = thread.ip +         \
+        INS_SIZE +                       \
+        (int16_t)thread.reg;             \
     else location.m = thread.reg;
 
 Argument::Argument(Thread& thread, uint8_t* ram, uint8_t argn) : ram(ram), loc_type(NONE), read_only(false) {
@@ -53,7 +59,7 @@ Argument::Argument(Thread& thread, uint8_t* ram, uint8_t argn) : ram(ram), loc_t
             loc_type = M;
             if(mode == AccessMode::RELATIVE) {
                 //add to the ip the value stored in the memory location of the immediate value
-                location.m = thread.ip + (uint16_t)ram[Instruction::getImdAddress(ram, thread.ip, argn)];
+                location.m = thread.ip + INS_SIZE + (uint16_t)ram[Instruction::getImdAddress(ram, thread.ip, argn)];
             } else {
                 //take the value of immediate as the address
                 location.m = ram[Instruction::getImdAddress(ram, thread.ip, argn)];
@@ -77,7 +83,7 @@ uint16_t Argument::read() const {
             v = *location.r >> 8;
             break;
         case M: case M16:
-            v += ram[location.m];
+            v = ram[location.m];
             v <<= 8;
             v += ram[(uint16_t)(location.m + 1)];
             break;

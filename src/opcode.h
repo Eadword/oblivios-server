@@ -43,6 +43,16 @@ inline OPCode OPCodeFromInt(uint8_t op) {
 }
 
 /**
+ * Gets the opcode as an integer.
+ * @note Even NONE will translate even though it is not valid.
+ * @param op opcode to translate.
+ * @return Integer representation of the opcode.
+ */
+inline uint8_t OPCodeToInt(OPCode op) {
+    return (uint8_t)op;
+}
+
+/**
  * Gets the number of parameters expected for a given opcode.
  * @param op The opcode
  * @return The number of parameters expected

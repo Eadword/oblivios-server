@@ -58,3 +58,24 @@ inline Location LocationFromInt(uint8_t loc, const uint8_t argn = 1) {
         return Location::NONE;
     }
 }
+
+/**
+ * Finds the location in the map and then returns the value that represents it.
+ * @param loc Location to find the key for.
+ * @param argn Which argument are we searching for, e.g. 1, or 2.
+ * @return Value representing that location.
+ */
+inline uint8_t LocationToInt(Location loc, uint8_t argn = 1) {
+    auto foundloc = [&loc](std::pair<uint8_t, Location> pair) -> bool {
+        return pair.second == loc;
+    };
+
+    if(argn == 1)
+        return std::find_if(Location_By_Arg1.begin(), Location_By_Arg1.end(), foundloc)->first;
+    else
+        return std::find_if(Location_By_Arg2.begin(), Location_By_Arg2.end(), foundloc)->first;
+}
+
+inline uint8_t RouteToInt(Location arg1, Location arg2) {
+    return LocationToInt(arg1, 1) | (LocationToInt(arg2, 2) << 4);
+}
