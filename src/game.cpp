@@ -269,19 +269,29 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
             break;
         case OPCode::CMP:
             break;
+        case OPCode::TEST:
+            break;
         case OPCode::JMP:
+            break;
+        case OPCode::JA:
+            break;
+        case OPCode::JAE:
+            break;
+        case OPCode::JB:
+            break;
+        case OPCode::JBE:
             break;
         case OPCode::JG:
             break;
         case OPCode::JGE:
             break;
-        case OPCode::JE:
-            break;
-        case OPCode::JNE:
-            break;
         case OPCode::JL:
             break;
         case OPCode::JLE:
+            break;
+        case OPCode::JE:
+            break;
+        case OPCode::JNE:
             break;
         case OPCode::JC:
             break;
