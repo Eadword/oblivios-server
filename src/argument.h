@@ -86,15 +86,10 @@ public:
 
     /**
      * Checks the sign of the value.
+     * @note Does not matter if RAM represents 8bit or 16bit value because it is big-endian.
      * @return True if negative, else false.
      */
     bool sign() const;
-
-    /**
-     * Performs a 2's compliment negation.
-     * @return The negated value.
-     */
-    uint16_t neg(bool memforce8 = true);
 
     /**
      * Swaps the data stored at the location. This is not a true object swap such as std::swap,
@@ -109,6 +104,6 @@ public:
 
 
 
-uint16_t Argument::write(const Argument& src) {
+inline uint16_t Argument::write(const Argument& src) {
     return write(src.read(), src.is8Bit());
 }

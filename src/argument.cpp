@@ -128,9 +128,9 @@ uint16_t Argument::write(uint16_t v, const bool memforce8) {
 }
 
 void Argument::swp(Argument& other) {
-    uint16_t t = other.read();
+    const uint16_t t = other.read();
     other.write(*this);
-    write(t, other.loc_type == M);
+    write(t, other.is8Bit());
 }
 
 bool Argument::is8Bit() const {
@@ -168,13 +168,4 @@ bool Argument::sign() const {
             return (*location.r & 0x0080) != 0;
         case NONE: return false;
     }
-}
-
-uint16_t Argument::neg(const bool memforce8) {
-    uint16_t v = read();
-    if(sign()) v = ~((uint16_t)(v - 1));
-    else       v = (uint16_t)(~v + 1);
-
-    //if only writing 8bits, it should still be valid
-    return write(v, memforce8);
 }
