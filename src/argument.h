@@ -9,6 +9,11 @@ struct Thread;
  * The thread must be valid when using this class.
  *
  * @see operator namespace which performs many operations on one or more arguments.
+ *
+ * @note
+ *  An odd result of how this works, is that an 8bit RAM value truncates the lower-order bits, while
+ *  registers will truncate the higher-order bits. Immediate types are treated as 16bit registers in
+ *  this regard, as their size is garunteed, so we truncate the higher-order bits as is expected.
  */
 class Argument {
     /// stores reference to game's ram to reduce number of params
@@ -40,10 +45,11 @@ public:
 
     /**
      * Reads up to 16 bits. If the data stores less, it will pad the most significant bits with 0s.
+     * @param force8 Will force reading the value as 8bits rather than 16bits.
      * @throws std::runtime_error if the memory is invalid and cannot be read.
      * @return The value read.
      */
-    uint16_t read() const;
+    uint16_t read(bool force8 = false) const;
 
     /**
      * Writes to this argument the value of data
@@ -86,10 +92,10 @@ public:
 
     /**
      * Checks the sign of the value.
-     * @note Does not matter if RAM represents 8bit or 16bit value because it is big-endian.
+     * @param force8 Will force reading the value as 8bits rather than 16bits.
      * @return True if negative, else false.
      */
-    bool sign() const;
+    bool sign(bool force8 = false) const;
 
     /**
      * Swaps the data stored at the location. This is not a true object swap such as std::swap,

@@ -29,16 +29,29 @@ TEST_F(ArgumentTest, ReadBasic) {
                                       Location::AX, Location::IMD);
     CONSTRUCT_ARGS;
     EXPECT_EQ(arg1.read(), 5);
+    EXPECT_EQ(arg1.read(true), 5);
     EXPECT_EQ(arg2.read(), 0x0004);
+    EXPECT_EQ(arg2.read(true), 0x04);
 }
 
 TEST_F(ArgumentTest, ReadPtr) {
     Instruction::constructInstruction(ram, 0, OPCode::SUB, AccessMode::DIRECT, AccessMode::RELATIVE,
                                       Location::PAX, Location::PIMD);
+    {
+        CONSTRUCT_ARGS;
+        EXPECT_EQ(arg1.read(), 0x1122);
+        EXPECT_EQ(arg1.read(true), 0x11);
+        EXPECT_EQ(arg2.read(), 0x1253);
+        EXPECT_EQ(arg2.read(true), 0x12);
+    }
 
-    CONSTRUCT_ARGS;
-    EXPECT_EQ(arg1.read(), 0x1122);
-    EXPECT_EQ(arg2.read(), 0x0311);
+    Instruction::constructInstruction(ram, 0, OPCode::ADD, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::AX, Location::PIMD);
+    {
+        CONSTRUCT_ARGS;
+        EXPECT_EQ(arg2.read(), 0x0311);
+        EXPECT_EQ(arg2.read(true), 0x03);
+    }
 }
 
 TEST_F(ArgumentTest, ReadTwoImds) {
@@ -57,6 +70,8 @@ TEST_F(ArgumentTest, Read8) {
     CONSTRUCT_ARGS;
     EXPECT_EQ(arg1.read(), 111);
     EXPECT_EQ(arg2.read(), 2);
+    EXPECT_EQ(arg1.read(true), 111);
+    EXPECT_EQ(arg2.read(true), 2);
 }
 
 TEST_F(ArgumentTest, ReadIncorrectMode) {
@@ -217,7 +232,7 @@ TEST_F(ArgumentTest, Sign) {
                                       Location::PAX, Location::IMD);
     {
         CONSTRUCT_ARGS;
-        EXPECT_TRUE(arg1.sign());
+        EXPECT_TRUE(arg1.sign()); //0xC332 + 0x0004 = 0xC336
         EXPECT_FALSE(arg2.sign());
     }
 

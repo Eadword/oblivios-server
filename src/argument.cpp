@@ -57,12 +57,17 @@ Argument::Argument(Thread& thread, uint8_t* ram, uint8_t argn) : ram(ram), loc_t
 
         case Location::PIMD:
             loc_type = M;
+
+            uint16_t imd;
+            imd = Instruction::getImdAddress(ram, thread.ip, argn); //the address of the imd
+            imd = (ram[imd] << 8) | (ram[(uint16_t)(imd + 1)]); //the value stored at the imd
+
             if(mode == AccessMode::RELATIVE) {
                 //add to the ip the value stored in the memory location of the immediate value
-                location.m = thread.ip + INS_SIZE + (uint16_t)ram[Instruction::getImdAddress(ram, thread.ip, argn)];
+                location.m = thread.ip + INS_SIZE + imd;
             } else {
                 //take the value of immediate as the address
-                location.m = ram[Instruction::getImdAddress(ram, thread.ip, argn)];
+                location.m = imd;
             }
             break;
 
@@ -70,11 +75,12 @@ Argument::Argument(Thread& thread, uint8_t* ram, uint8_t argn) : ram(ram), loc_t
     }
 }
 
-uint16_t Argument::read() const {
+uint16_t Argument::read(bool force8) const {
     uint16_t v = 0x0000;
     switch(loc_type) {
         case R16:
             v = *location.r;
+            if(force8) v &= 0x00FF;
             break;
         case R8L:
             v = (uint8_t)(*location.r);
@@ -82,10 +88,19 @@ uint16_t Argument::read() const {
         case R8H:
             v = *location.r >> 8;
             break;
-        case M: case M16:
+        case M:
             v = ram[location.m];
-            v <<= 8;
-            v += ram[(uint16_t)(location.m + 1)];
+            if(!force8) {
+                v <<= 8;
+                v |= ram[(uint16_t)(location.m + 1)];
+            }
+            break;
+        case M16:
+            if(!force8) {
+                v = ram[location.m];
+                v <<= 8;
+            }
+            v |= ram[(uint16_t)(location.m + 1)];
             break;
         case NONE:
             throw std::runtime_error("Program attempted to read from invalid memory");
@@ -158,14 +173,19 @@ bool Argument::isReg() const {
     return !isMem();
 }
 
-bool Argument::sign() const {
+bool Argument::sign(bool force8) const {
+    const uint16_t v = read();
+    //force8 only alters M16 and R16 because they are guaranteed to be truncated from high-order
+    // bits, whereas if RAM is treated as 16bits, it expands into the low order rather than the
+    // high-order. (Thus RAM truncates lower-order).
     switch(loc_type) {
-        case M: case M16:
-            return (ram[location.m] & 0x80) != 0;
-        case R16: case R8H:
-            return (*location.r & 0x8000) != 0;
-        case R8L:
-            return (*location.r & 0x0080) != 0;
-        case NONE: return false;
+        case M:
+            return (v & 0x8000) != 0;
+        case R8L: case R8H:
+            return (v & 0x0080) != 0;
+        case M16: case R16:
+            return force8 ? (v & 0x0080) != 0 : (v & 0x8000) != 0;
+        case NONE:
+            return false;
     }
 }
