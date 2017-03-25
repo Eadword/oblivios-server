@@ -126,6 +126,43 @@ TEST_F(OperatorTest, AddRAM) {
     }
 }
 
+TEST_F(OperatorTest, Mul8b) {
+    Instruction::constructInstruction(ram, 0, OPCode::MUL, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PIMD, Location::AX);
+    ram[3] = 11; //0x32
+    Argument arg(thread, ram);
+    Operator::mul(thread, arg);
+
+    EXPECT_EQ(Thread::readLow(thread.ax), 0xFA);
+    EXPECT_EQ(Thread::readHigh(thread.ax), 0);
+    EXPECT_FALSE(thread.o);
+    EXPECT_FALSE(thread.c);
+
+    Operator::mul(thread, arg);
+    EXPECT_EQ(thread.ax, 0x30D4);
+    EXPECT_TRUE(thread.o);
+    EXPECT_TRUE(thread.c);
+}
+
+TEST_F(OperatorTest, Mul16b) {
+    Instruction::constructInstruction(ram, 0, OPCode::MUL, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::IMD, Location::AX);
+    ram[2] = 0x31; //0x3104
+    Argument arg(thread, ram);
+    Operator::mul(thread, arg);
+
+    EXPECT_EQ(thread.ax, 0xF514);
+    EXPECT_EQ(thread.bx, 23);
+    EXPECT_FALSE(thread.o);
+    EXPECT_FALSE(thread.c);
+
+    Operator::mul(thread, arg);
+    EXPECT_EQ(thread.ax, 0xA850);
+    EXPECT_EQ(thread.bx, 0x2EEC);
+    EXPECT_TRUE(thread.o);
+    EXPECT_TRUE(thread.c);
+}
+
 TEST_F(OperatorTest, Sub) {
     Instruction::constructInstruction(ram, 0, OPCode::ADD, AccessMode::DIRECT, AccessMode::DIRECT,
                                       Location::AX, Location::BX);

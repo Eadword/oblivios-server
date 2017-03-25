@@ -43,6 +43,40 @@ void Operator::mov(Argument& arg1, const Argument& arg2) {
 }
 
 
+void Operator::mul(Thread& thread, const Argument& arg) {
+    if(arg.is8Bit()) {
+        uint16_t v = arg.read(true);
+        v *= Thread::readLow(thread.ax);
+        if(v & 0xFF00) { //Overflow
+            thread.o = true;
+            thread.c = true;
+            thread.ax = v;
+        }
+        else { //Fits
+            thread.o = false;
+            thread.c = false;
+            thread.ax &= 0xFF00;
+            thread.ax |= v;
+        }
+    }
+    else { //16bit
+        uint32_t v = arg.read();
+        v *= thread.ax;
+        if(v & 0xFFFF0000) { //Overflow
+            thread.o = true;
+            thread.c = true;
+            thread.ax = (uint16_t)v;
+            thread.bx = (uint16_t)(v >> 16);
+        }
+        else { //Fits
+            thread.o = false;
+            thread.c = false;
+            thread.ax = (uint16_t)v;
+        }
+    }
+}
+
+
 void Operator::neg(Thread& thread, Argument& arg) {
     const uint16_t v = arg.read();
     thread.z = v == 0;
