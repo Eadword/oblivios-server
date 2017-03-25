@@ -14,6 +14,14 @@ using Json = nlohmann::json;
  */
 namespace Operator {
     /**
+     * Perform an ADD operation.
+     * @param thread Current thread with registers and flag values.
+     * @param arg1 Argument which will store the result and be added.
+     * @param arg2 Argument which is being added to the first.
+     */
+    void add(Thread& thread, Argument& arg1, const Argument& arg2);
+
+    /**
      * Sends an interrupt which is interpreted by the "OS".
      * @param thread Current thread with registers and flag values.
      * @param arg1 Argument storing interrupt code.
@@ -30,19 +38,11 @@ namespace Operator {
     void mov(Argument& arg1, const Argument& arg2);
 
     /**
-     * Swaps values of the two registers.
-     * @param arg1 First argument to be swapped.
-     * @param arg2 Second argument to be swapped.
-     */
-    void swp(Argument& arg1, Argument& arg2);
-
-    /**
-     * Perform an ADD operation.
+     * Perform two's complement negation.
      * @param thread Current thread with registers and flag values.
-     * @param arg1 Argument which will store the result and be added.
-     * @param arg2 Argument which is being added to the first.
+     * @param arg Argument which is to be negated.
      */
-    void add(Thread& thread, Argument& arg1, const Argument& arg2);
+    void neg(Thread& thread, Argument& arg);
 
     /**
      * Perform an SUB operation.
@@ -51,4 +51,11 @@ namespace Operator {
      * @param arg2 Argument which is subtracted from the first.
      */
     void sub(Thread& thread, Argument& arg1, const Argument& arg2);
+
+    /**
+     * Swaps values of the two registers.
+     * @param arg1 First argument to be swapped.
+     * @param arg2 Second argument to be swapped.
+     */
+    void swp(Argument& arg1, Argument& arg2);
 }
