@@ -245,6 +245,7 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
             Operator::mul(thread, arg1);
             break;
         case OPCode::IMUL:
+            Operator::imul(thread, arg1);
             break;
         case OPCode::DIV:
             break;

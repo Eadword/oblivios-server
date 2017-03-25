@@ -77,6 +77,40 @@ void Operator::mul(Thread& thread, const Argument& arg) {
 }
 
 
+void Operator::imul(Thread& thread, const Argument& arg) {
+    if(arg.is8Bit()) {
+        int16_t v = (int8_t)arg.read(true);
+        v *= (int8_t)Thread::readLow(thread.ax);
+        if(v < 0x7F && v > -0x80 ) { //Fits
+            thread.o = false;
+            thread.c = false;
+            thread.ax &= 0xFF00;
+            thread.ax |= (uint8_t)v;
+        }
+        else { //Overflow
+            thread.o = true;
+            thread.c = true;
+            thread.ax = (uint16_t)v;
+        }
+    }
+    else { //16bit
+        int32_t v = (int16_t)arg.read();
+        v *= (int16_t)thread.ax;
+        if(v < 0x7FFF && v > -0x8000 ) { //Fits
+            thread.o = false;
+            thread.c = false;
+            thread.ax = (uint16_t)v;
+        }
+        else { //Overflow
+            thread.o = true;
+            thread.c = true;
+            thread.ax = (uint16_t)v;
+            thread.bx = (uint16_t)(v >> 16);
+        }
+    }
+}
+
+
 void Operator::neg(Thread& thread, Argument& arg) {
     const uint16_t v = arg.read();
     thread.z = v == 0;

@@ -38,7 +38,7 @@ namespace Operator {
     void mov(Argument& arg1, const Argument& arg2);
 
     /**
-     * Multiplies AX or AL by the argument. If 8bit, it will multiply
+     * Unsigned multiplication of AX or AL by the argument. If 8bit, it will multiply
      * AL by arg, and save in AH:AL if overflow (overwriting the value in AH).
      * If 16bit, it will multiply AX by arg, and save in BX:AX if overflow,
      * overwriting the value in BX.
@@ -47,6 +47,17 @@ namespace Operator {
      * @param arg Argument used to multiply by.
      */
     void mul(Thread& thread, const Argument& arg);
+
+    /**
+     * Signed multiplication of AX or AL by the argument. If 8bit, it will multiply
+     * AL by arg, and save in AH:AL if overflow (overwriting the value in AH).
+     * If 16bit, it will multiply AX by arg, and save in BX:AX if overflow,
+     * overwriting the value in BX.
+     * @note Bitage of arg determines if it is 8bit or 16bit.
+     * @param thread Current thread with registers and flag values.
+     * @param arg Argument used to multiply by.
+     */
+    void imul(Thread& thread, const Argument& arg);
 
     /**
      * Perform two's complement negation.

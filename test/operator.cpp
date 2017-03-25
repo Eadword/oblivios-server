@@ -163,6 +163,44 @@ TEST_F(OperatorTest, Mul16b) {
     EXPECT_TRUE(thread.c);
 }
 
+TEST_F(OperatorTest, Imul8b) {
+    Instruction::constructInstruction(ram, 0, OPCode::IMUL, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::AH, Location::AX);
+    thread.ax |= 0xF200; //set AH to -14
+    Argument arg(thread, ram);
+    Operator::imul(thread, arg);
+
+    EXPECT_EQ(Thread::readLow(thread.ax), 0xBA); //-70
+    EXPECT_EQ(Thread::readHigh(thread.ax), 0xF2);
+    EXPECT_FALSE(thread.o);
+    EXPECT_FALSE(thread.c);
+
+    Operator::imul(thread, arg);
+    EXPECT_EQ(thread.ax, 0x03D4); //980
+    EXPECT_TRUE(thread.o);
+    EXPECT_TRUE(thread.c);
+}
+
+TEST_F(OperatorTest, Imul16b) {
+    Instruction::constructInstruction(ram, 0, OPCode::IMUL, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::BX, Location::AX);
+
+    thread.bx = 0xEFED; //-4115
+    Argument arg(thread, ram);
+    Operator::imul(thread, arg);
+
+    EXPECT_EQ(thread.ax, 0xAFA1); //-20575
+    EXPECT_EQ(thread.bx, 0xEFED);
+    EXPECT_FALSE(thread.o);
+    EXPECT_FALSE(thread.c);
+
+    Operator::imul(thread, arg);
+    EXPECT_EQ(thread.ax, 0xE70D);
+    EXPECT_EQ(thread.bx, 0x050B);
+    EXPECT_TRUE(thread.o);
+    EXPECT_TRUE(thread.c);
+}
+
 TEST_F(OperatorTest, Sub) {
     Instruction::constructInstruction(ram, 0, OPCode::ADD, AccessMode::DIRECT, AccessMode::DIRECT,
                                       Location::AX, Location::BX);
