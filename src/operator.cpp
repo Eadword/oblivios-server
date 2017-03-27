@@ -33,6 +33,92 @@ void Operator::add(Thread& thread, Argument& arg1, const Argument& arg2) {
 }
 
 
+void Operator::div(Thread& thread, const Argument& arg) {
+    if(arg.is8Bit()) {
+        const uint16_t n = thread.ax;
+        const uint16_t d = arg.read(true);
+        if(d == 0) throw std::runtime_error("Divide by zero error.");
+
+        thread.ax = 0x0000;
+        const uint16_t q = n / d;
+        const uint16_t r = n % d;
+        thread.o = q > 0xFF;
+        thread.ax = (r << 8) | (uint8_t)q;
+    }
+    else { //16bit
+        const uint32_t n = (thread.bx << 16) | thread.ax;
+        const uint32_t d = arg.read();
+        if(d == 0) throw std::runtime_error("Divide by zero error.");
+
+        const uint32_t q = n / d;
+        const uint32_t r = n % d;
+        thread.o = q > 0xFFFF;
+        thread.ax = (uint16_t)q;
+        thread.bx = (uint16_t)r;
+    }
+}
+
+
+void Operator::idiv(Thread& thread, const Argument& arg) {
+    if(arg.is8Bit()) {
+        const int16_t n = thread.ax;
+        const int16_t d = (int8_t)arg.read(true);
+        if(d == 0) throw std::runtime_error("Divide by zero error.");
+
+        thread.ax = 0x0000;
+        const int16_t q = n / d;
+        const int16_t r = n % d;
+        thread.o = (q > 0x7F || q < -0x80);
+        thread.ax = (uint16_t)(r << 8) | (uint8_t)q;
+    }
+    else { //16bit
+        const int32_t n = (thread.bx << 16) | thread.ax;
+        const int32_t d = (int16_t)arg.read();
+        if(d == 0) throw std::runtime_error("Divide by zero error.");
+
+        const int32_t q = n / d;
+        const int32_t r = n % d;
+        thread.o = (q > 0x7FFF || q < -0x8000);
+        thread.ax = (uint16_t)q;
+        thread.bx = (uint16_t)r;
+    }
+}
+
+
+void Operator::imul(Thread& thread, const Argument& arg) {
+    if(arg.is8Bit()) {
+        int16_t v = (int8_t)arg.read(true);
+        v *= (int8_t)Thread::readLow(thread.ax);
+        if(v < 0x7F && v > -0x80 ) { //Fits
+            thread.o = false;
+            thread.c = false;
+            thread.ax &= 0xFF00;
+            thread.ax |= (uint8_t)v;
+        }
+        else { //Overflow
+            thread.o = true;
+            thread.c = true;
+            thread.ax = (uint16_t)v;
+        }
+    }
+    else { //16bit
+        int32_t v = (int16_t)arg.read();
+        v *= (int16_t)thread.ax;
+        if(v < 0x7FFF && v > -0x8000 ) { //Fits
+            thread.o = false;
+            thread.c = false;
+            thread.ax = (uint16_t)v;
+        }
+        else { //Overflow
+            thread.o = true;
+            thread.c = true;
+            thread.ax = (uint16_t)v;
+            thread.bx = (uint16_t)(v >> 16);
+        }
+    }
+}
+
+
 void Operator::int_(Thread& thread, Argument& arg1, Argument& arg2) {
     //TODO: handle interrupts
 }
@@ -72,40 +158,6 @@ void Operator::mul(Thread& thread, const Argument& arg) {
             thread.o = false;
             thread.c = false;
             thread.ax = (uint16_t)v;
-        }
-    }
-}
-
-
-void Operator::imul(Thread& thread, const Argument& arg) {
-    if(arg.is8Bit()) {
-        int16_t v = (int8_t)arg.read(true);
-        v *= (int8_t)Thread::readLow(thread.ax);
-        if(v < 0x7F && v > -0x80 ) { //Fits
-            thread.o = false;
-            thread.c = false;
-            thread.ax &= 0xFF00;
-            thread.ax |= (uint8_t)v;
-        }
-        else { //Overflow
-            thread.o = true;
-            thread.c = true;
-            thread.ax = (uint16_t)v;
-        }
-    }
-    else { //16bit
-        int32_t v = (int16_t)arg.read();
-        v *= (int16_t)thread.ax;
-        if(v < 0x7FFF && v > -0x8000 ) { //Fits
-            thread.o = false;
-            thread.c = false;
-            thread.ax = (uint16_t)v;
-        }
-        else { //Overflow
-            thread.o = true;
-            thread.c = true;
-            thread.ax = (uint16_t)v;
-            thread.bx = (uint16_t)(v >> 16);
         }
     }
 }

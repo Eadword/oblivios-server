@@ -126,41 +126,112 @@ TEST_F(OperatorTest, AddRAM) {
     }
 }
 
-TEST_F(OperatorTest, Mul8b) {
-    Instruction::constructInstruction(ram, 0, OPCode::MUL, AccessMode::DIRECT, AccessMode::DIRECT,
-                                      Location::PIMD, Location::AX);
-    ram[3] = 11; //0x32
-    Argument arg(thread, ram);
-    Operator::mul(thread, arg);
+TEST_F(OperatorTest, Div8b) {
+    Instruction::constructInstruction(ram, 0, OPCode::IDIV, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::CL, Location::AX);
+    thread.cx = 10;
+    thread.ax = 30000;
+    {
+        CONSTRUCT_ARGS;
+        Operator::div(thread, arg1);
+        EXPECT_TRUE(thread.o);
+    }
 
-    EXPECT_EQ(Thread::readLow(thread.ax), 0xFA);
-    EXPECT_EQ(Thread::readHigh(thread.ax), 0);
-    EXPECT_FALSE(thread.o);
-    EXPECT_FALSE(thread.c);
-
-    Operator::mul(thread, arg);
-    EXPECT_EQ(thread.ax, 0x30D4);
-    EXPECT_TRUE(thread.o);
-    EXPECT_TRUE(thread.c);
+    thread.cx = 176;
+    thread.ax = 7000;
+    {
+        CONSTRUCT_ARGS;
+        Operator::div(thread, arg1);
+        EXPECT_EQ(Thread::readLow(thread.ax), 39);
+        EXPECT_EQ(Thread::readHigh(thread.ax), 136);
+        EXPECT_FALSE(thread.o);
+    }
+    thread.cx = 0;
+    {
+        CONSTRUCT_ARGS;
+        EXPECT_THROW(Operator::div(thread, arg1), std::runtime_error);
+    }
 }
 
-TEST_F(OperatorTest, Mul16b) {
-    Instruction::constructInstruction(ram, 0, OPCode::MUL, AccessMode::DIRECT, AccessMode::DIRECT,
-                                      Location::IMD, Location::AX);
-    ram[2] = 0x31; //0x3104
-    Argument arg(thread, ram);
-    Operator::mul(thread, arg);
+TEST_F(OperatorTest, Div16b) {
+    Instruction::constructInstruction(ram, 0, OPCode::IDIV, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::CX, Location::AX);
+    thread.cx = 10;
+    thread.bx = 0x1000; thread.ax = 0x0000; //268435456
+    {
+        CONSTRUCT_ARGS;
+        Operator::div(thread, arg1);
+        EXPECT_TRUE(thread.o);
+    }
 
-    EXPECT_EQ(thread.ax, 0xF514);
-    EXPECT_EQ(thread.bx, 23);
-    EXPECT_FALSE(thread.o);
-    EXPECT_FALSE(thread.c);
+    thread.cx = 0xFFFF; //65535
+    thread.bx = 0xF646; thread.ax = 0x0000; //4131782656
+    {
+        CONSTRUCT_ARGS;
+        Operator::div(thread, arg1);
+        EXPECT_EQ(thread.ax, 0xF646); //63046
+        EXPECT_EQ(thread.bx, 0xF646); //63046
+        EXPECT_FALSE(thread.o);
+    }
+    thread.cx = 0;
+    {
+        CONSTRUCT_ARGS;
+        EXPECT_THROW(Operator::div(thread, arg1), std::runtime_error);
+    }
+}
 
-    Operator::mul(thread, arg);
-    EXPECT_EQ(thread.ax, 0xA850);
-    EXPECT_EQ(thread.bx, 0x2EEC);
-    EXPECT_TRUE(thread.o);
-    EXPECT_TRUE(thread.c);
+TEST_F(OperatorTest, Idiv8b) {
+    Instruction::constructInstruction(ram, 0, OPCode::IDIV, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::CL, Location::AX);
+    thread.cx = 10;
+    thread.ax = 30000;
+    {
+        CONSTRUCT_ARGS;
+        Operator::idiv(thread, arg1);
+        EXPECT_TRUE(thread.o);
+    }
+
+    thread.cx = 0xFFB0; //-80
+    thread.ax = 7000;
+    {
+        CONSTRUCT_ARGS;
+        Operator::idiv(thread, arg1);
+        EXPECT_EQ(Thread::readLow(thread.ax), 0xA9); //-87.5 -> -87
+        EXPECT_EQ(Thread::readHigh(thread.ax), 40);
+        EXPECT_FALSE(thread.o);
+    }
+    thread.cx = 0;
+    {
+        CONSTRUCT_ARGS;
+        EXPECT_THROW(Operator::idiv(thread, arg1), std::runtime_error);
+    }
+}
+
+TEST_F(OperatorTest, Idiv16b) {
+    Instruction::constructInstruction(ram, 0, OPCode::IDIV, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::CX, Location::AX);
+    thread.cx = 10;
+    thread.bx = 0x1000; thread.ax = 0x0000; //268435456
+    {
+        CONSTRUCT_ARGS;
+        Operator::idiv(thread, arg1);
+        EXPECT_TRUE(thread.o);
+    }
+
+    thread.cx = 0xA3A5; //-23643
+    thread.bx = 0xF646; thread.ax = 0x0000; //-163184640
+    {
+        CONSTRUCT_ARGS;
+        Operator::idiv(thread, arg1);
+        EXPECT_EQ(thread.ax, 0x1AF6); //6902
+        EXPECT_EQ(thread.bx, 0xFD72); //-654
+        EXPECT_FALSE(thread.o);
+    }
+    thread.cx = 0;
+    {
+        CONSTRUCT_ARGS;
+        EXPECT_THROW(Operator::idiv(thread, arg1), std::runtime_error);
+    }
 }
 
 TEST_F(OperatorTest, Imul8b) {
@@ -197,6 +268,43 @@ TEST_F(OperatorTest, Imul16b) {
     Operator::imul(thread, arg);
     EXPECT_EQ(thread.ax, 0xE70D);
     EXPECT_EQ(thread.bx, 0x050B);
+    EXPECT_TRUE(thread.o);
+    EXPECT_TRUE(thread.c);
+}
+
+TEST_F(OperatorTest, Mul8b) {
+    Instruction::constructInstruction(ram, 0, OPCode::MUL, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PIMD, Location::AX);
+    ram[3] = 11; //0x32
+    Argument arg(thread, ram);
+    Operator::mul(thread, arg);
+
+    EXPECT_EQ(Thread::readLow(thread.ax), 0xFA);
+    EXPECT_EQ(Thread::readHigh(thread.ax), 0);
+    EXPECT_FALSE(thread.o);
+    EXPECT_FALSE(thread.c);
+
+    Operator::mul(thread, arg);
+    EXPECT_EQ(thread.ax, 0x30D4);
+    EXPECT_TRUE(thread.o);
+    EXPECT_TRUE(thread.c);
+}
+
+TEST_F(OperatorTest, Mul16b) {
+    Instruction::constructInstruction(ram, 0, OPCode::MUL, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::IMD, Location::AX);
+    ram[2] = 0x31; //0x3104
+    Argument arg(thread, ram);
+    Operator::mul(thread, arg);
+
+    EXPECT_EQ(thread.ax, 0xF514);
+    EXPECT_EQ(thread.bx, 23);
+    EXPECT_FALSE(thread.o);
+    EXPECT_FALSE(thread.c);
+
+    Operator::mul(thread, arg);
+    EXPECT_EQ(thread.ax, 0xA850);
+    EXPECT_EQ(thread.bx, 0x2EEC);
     EXPECT_TRUE(thread.o);
     EXPECT_TRUE(thread.c);
 }
