@@ -254,8 +254,10 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
             Operator::idiv(thread, arg1);
             break;
         case OPCode::SHL:
+            Operator::shl(thread, arg1, arg2);
             break;
         case OPCode::SHR:
+            Operator::shr(thread, arg1, arg2);
             break;
         case OPCode::NEG:
             break;

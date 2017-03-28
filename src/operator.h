@@ -89,6 +89,26 @@ namespace Operator {
     void neg(Thread& thread, Argument& arg);
 
     /**
+     * Shift logical left. Shifts bit to the left arg2 times.
+     * Sets the overflow flag only if a shift by 1 and it cuts something off.
+     * Carry flag set to last bit cut.
+     * @param thread Current thread with registers and flag values.
+     * @param arg1 Argument storing the value to be shifted.
+     * @param arg2 Argument specifing how many bits to shift by.
+     */
+    void shl(Thread& thread, Argument& arg1, const Argument& arg2);
+
+    /**
+     * Shift logical right. Shifts bit to the right arg2 times.
+     * Sets the overflow flag to most significant bit of origional operand.
+     * Carry flag set to last bit cut.
+     * @param thread Current thread with registers and flag values.
+     * @param arg1 Argument storing the value to be shifted.
+     * @param arg2 Argument specifing how many bits to shift by.
+     */
+    void shr(Thread& thread, Argument& arg1, const Argument& arg2);
+
+    /**
      * Perform an SUB operation.
      * @param thread Current thread with registers and flag values.
      * @param arg1 Argument which will store the result and be subtracted from.

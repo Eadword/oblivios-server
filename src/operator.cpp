@@ -175,6 +175,42 @@ void Operator::neg(Thread& thread, Argument& arg) {
 }
 
 
+void Operator::shl(Thread& thread, Argument& arg1, const Argument& arg2) {
+    uint16_t v = arg1.read();
+    const uint16_t n = arg2.read();
+
+    //set carry to last bit which is cut off
+    thread.c = ((v << std::max((int)n - 1, 0)) & (arg1.is8Bit() ? 0x80 : 0x8000)) != 0;
+
+    v <<= n;
+    arg1.write(v, arg2.is8Bit());
+
+    thread.s = (v & (arg1.is8Bit() ? 0x80: 0x8000)) != 0;
+    if(n == 1)
+        //set overflow to true if the sign changed because of the shift
+        thread.o =  thread.s != thread.c;
+
+    thread.z = !v;
+}
+
+
+void Operator::shr(Thread& thread, Argument& arg1, const Argument& arg2) {
+    uint16_t v = arg1.read();
+    const uint16_t n = arg2.read();
+
+    //set overflow flag to most significant bit of origional
+    thread.o = (v & (arg1.is8Bit() ? 0x80 : 0x8000)) != 0;
+    //set carry to last bit which is cut off
+    thread.c = ((v >> std::max((int)n - 1, 0)) & (0x0001)) != 0;
+
+    v >>= arg2.read();
+    arg1.write(v, arg2.is8Bit());
+
+    thread.z = !v;
+    thread.s = (v & (arg1.is8Bit() ? 0x80 : 0x8000)) != 0;
+}
+
+
 void Operator::sub(Thread& thread, Argument& arg1, const Argument& arg2) {
     ::add(thread, arg1, arg2, true);
 }

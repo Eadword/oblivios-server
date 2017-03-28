@@ -309,6 +309,78 @@ TEST_F(OperatorTest, Mul16b) {
     EXPECT_TRUE(thread.c);
 }
 
+TEST_F(OperatorTest, Shl) {
+    Instruction::constructInstruction(ram, 0, OPCode::SHL, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::BX, Location::AX);
+    CONSTRUCT_ARGS;
+    Operator::shl(thread, arg1, arg2);
+    EXPECT_EQ(thread.bx, 736);
+    EXPECT_FALSE(thread.o);
+    EXPECT_FALSE(thread.c);
+    EXPECT_FALSE(thread.z);
+    EXPECT_FALSE(thread.s);
+
+    Operator::shl(thread, arg1, arg2);
+    EXPECT_EQ(thread.bx, 23552);
+    EXPECT_FALSE(thread.o);
+    EXPECT_FALSE(thread.c);
+    EXPECT_FALSE(thread.z);
+    EXPECT_FALSE(thread.s);
+
+    Operator::shl(thread, arg1, arg2);
+    EXPECT_EQ(thread.bx, 32768);
+    EXPECT_FALSE(thread.o);
+    EXPECT_TRUE(thread.c);
+    EXPECT_FALSE(thread.z);
+    EXPECT_TRUE(thread.s);
+
+    thread.ax = 1;
+    Operator::shl(thread, arg1, arg2);
+    EXPECT_EQ(thread.bx, 0);
+    EXPECT_TRUE(thread.o);
+    EXPECT_TRUE(thread.c);
+    EXPECT_TRUE(thread.z);
+    EXPECT_FALSE(thread.s);
+}
+
+TEST_F(OperatorTest, Shr) {
+    Instruction::constructInstruction(ram, 0, OPCode::SHR, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::BX, Location::AX);
+    thread.bx = 47104;
+    thread.ax = 1;
+    CONSTRUCT_ARGS;
+    Operator::shr(thread, arg1, arg2);
+    EXPECT_EQ(thread.bx, 23552);
+    EXPECT_TRUE(thread.o);
+    EXPECT_FALSE(thread.c);
+    EXPECT_FALSE(thread.z);
+    EXPECT_FALSE(thread.s);
+
+    thread.ax = 5;
+    Operator::shr(thread, arg1, arg2);
+    EXPECT_EQ(thread.bx, 736);
+    EXPECT_FALSE(thread.o);
+    EXPECT_FALSE(thread.c);
+    EXPECT_FALSE(thread.z);
+    EXPECT_FALSE(thread.s);
+
+    thread.ax = 6;
+    Operator::shr(thread, arg1, arg2);
+    EXPECT_EQ(thread.bx, 11);
+    EXPECT_FALSE(thread.o);
+    EXPECT_TRUE(thread.c);
+    EXPECT_FALSE(thread.z);
+    EXPECT_FALSE(thread.s);
+
+    thread.ax = 4;
+    Operator::shr(thread, arg1, arg2);
+    EXPECT_EQ(thread.bx, 0);
+    EXPECT_FALSE(thread.o);
+    EXPECT_TRUE(thread.c);
+    EXPECT_TRUE(thread.z);
+    EXPECT_FALSE(thread.s);
+}
+
 TEST_F(OperatorTest, Sub) {
     Instruction::constructInstruction(ram, 0, OPCode::ADD, AccessMode::DIRECT, AccessMode::DIRECT,
                                       Location::AX, Location::BX);
