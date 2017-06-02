@@ -392,3 +392,72 @@ TEST_F(OperatorTest, Sub) {
     EXPECT_FALSE(thread.c);
     EXPECT_FALSE(thread.z);
 }
+
+TEST_F(OperatorTest, Neg8b) {
+    Instruction::constructInstruction(ram, 0, OPCode::NEG, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::CL, Location::AX);
+    CONSTRUCT_ARGS;
+    Operator::neg(thread, arg1);
+    EXPECT_EQ(Thread::readLow(thread.cx), (uint8_t)(-111));
+    EXPECT_EQ(thread.cx, 0x0291); //check that it only negates the specified 8 bits
+    EXPECT_TRUE(thread.c);
+    EXPECT_FALSE(thread.o);
+    EXPECT_TRUE(thread.s);
+    EXPECT_FALSE(thread.z);
+
+
+    Operator::neg(thread, arg1);
+    EXPECT_EQ(Thread::readLow(thread.cx), (uint8_t)(111));
+    EXPECT_EQ(thread.cx, 623);
+    EXPECT_FALSE(thread.s);
+}
+
+TEST_F(OperatorTest, Neg16b) {
+    Instruction::constructInstruction(ram, 0, OPCode::NEG, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::AX, Location::AX);
+    CONSTRUCT_ARGS;
+    Operator::neg(thread, arg1);
+    EXPECT_EQ(thread.ax, (uint16_t)(-5));
+    EXPECT_TRUE(thread.s);
+    EXPECT_TRUE(thread.c);
+    EXPECT_FALSE(thread.o);
+    EXPECT_FALSE(thread.z);
+
+    Operator::neg(thread, arg1);
+    EXPECT_EQ(thread.ax, (uint16_t)(5));
+    EXPECT_FALSE(thread.s);
+}
+
+TEST_F(OperatorTest, NegRAM) {
+    Instruction::constructInstruction(ram, 0, OPCode::NEG, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PAX, Location::AX);
+    CONSTRUCT_ARGS;
+    Operator::neg(thread, arg1);
+    EXPECT_EQ(ram[5], (uint8_t)(-0x11));
+    EXPECT_EQ(ram[4], 0x03);
+    EXPECT_EQ(ram[6], 0x22);
+    EXPECT_TRUE(thread.s);
+    EXPECT_TRUE(thread.c);
+    EXPECT_FALSE(thread.o);
+    EXPECT_FALSE(thread.z);
+}
+
+TEST_F(OperatorTest, NegEdge) {
+    Instruction::constructInstruction(ram, 0, OPCode::NEG, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::BX, Location::AX);
+    CONSTRUCT_ARGS;
+    thread.bx = 0;
+    Operator::neg(thread, arg1);
+    EXPECT_EQ(thread.bx, 0);
+    EXPECT_FALSE(thread.c);
+    EXPECT_TRUE(thread.z);
+    EXPECT_FALSE(thread.o);
+    EXPECT_FALSE(thread.s);
+
+    thread.bx = 0x8000;
+    Operator::neg(thread, arg1);
+    EXPECT_TRUE(thread.o);
+    EXPECT_TRUE(thread.s);
+    EXPECT_TRUE(thread.c);
+    EXPECT_FALSE(thread.z);
+}

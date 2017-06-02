@@ -164,12 +164,13 @@ void Operator::mul(Thread& thread, const Argument& arg) {
 
 
 void Operator::neg(Thread& thread, Argument& arg) {
-    const uint16_t v = arg.read();
+    const bool is8bit = arg.is8Bit();
+    const uint16_t v = arg.read(is8bit); //8bit if in ram
     thread.z = v == 0;
     thread.c = v != 0;
-    thread.o = v == 0x8000;
+    thread.o = v == (is8bit ? 0x80 : 0x8000);
 
-    arg.write( ::neg(v) );
+    arg.write(::neg(v), true); //always force ram to be 8bit
 
     thread.s = arg.sign();
 }
@@ -198,7 +199,7 @@ void Operator::shr(Thread& thread, Argument& arg1, const Argument& arg2) {
     uint16_t v = arg1.read();
     const uint16_t n = arg2.read();
 
-    //set overflow flag to most significant bit of origional
+    //set overflow flag to most significant bit of original
     thread.o = (v & (arg1.is8Bit() ? 0x80 : 0x8000)) != 0;
     //set carry to last bit which is cut off
     thread.c = ((v >> std::max((int)n - 1, 0)) & (0x0001)) != 0;

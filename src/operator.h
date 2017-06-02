@@ -94,13 +94,13 @@ namespace Operator {
      * Carry flag set to last bit cut.
      * @param thread Current thread with registers and flag values.
      * @param arg1 Argument storing the value to be shifted.
-     * @param arg2 Argument specifing how many bits to shift by.
+     * @param arg2 Argument specifying how many bits to shift by.
      */
     void shl(Thread& thread, Argument& arg1, const Argument& arg2);
 
     /**
      * Shift logical right. Shifts bit to the right arg2 times.
-     * Sets the overflow flag to most significant bit of origional operand.
+     * Sets the overflow flag to most significant bit of original operand.
      * Carry flag set to last bit cut.
      * @param thread Current thread with registers and flag values.
      * @param arg1 Argument storing the value to be shifted.
@@ -109,7 +109,7 @@ namespace Operator {
     void shr(Thread& thread, Argument& arg1, const Argument& arg2);
 
     /**
-     * Perform an SUB operation.
+     * Subtract arg1 by arg2.
      * @param thread Current thread with registers and flag values.
      * @param arg1 Argument which will store the result and be subtracted from.
      * @param arg2 Argument which is subtracted from the first.
