@@ -89,6 +89,12 @@ namespace Operator {
     void neg(Thread& thread, Argument& arg);
 
     /**
+     * Perform one's complement negation, aka flip all the bits.
+     * @param arg Argument which is to be flipped.
+     */
+    void _not(Argument& arg);
+
+    /**
      * Shift logical left. Shifts bit to the left arg2 times.
      * Sets the overflow flag only if a shift by 1 and it cuts something off.
      * Carry flag set to last bit cut.

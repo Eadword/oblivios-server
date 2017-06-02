@@ -176,6 +176,12 @@ void Operator::neg(Thread& thread, Argument& arg) {
 }
 
 
+void Operator::_not(Argument& arg) {
+    const uint16_t v = arg.read(arg.is8Bit());
+    arg.write(~v, true); //always force ram to be 8bit
+}
+
+
 void Operator::shl(Thread& thread, Argument& arg1, const Argument& arg2) {
     uint16_t v = arg1.read();
     const uint16_t n = arg2.read();

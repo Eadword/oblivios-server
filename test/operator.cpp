@@ -461,3 +461,30 @@ TEST_F(OperatorTest, NegEdge) {
     EXPECT_TRUE(thread.c);
     EXPECT_FALSE(thread.z);
 }
+
+TEST_F(OperatorTest, Not8b) {
+    Instruction::constructInstruction(ram, 0, OPCode::NEG, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::CH, Location::AX);
+    CONSTRUCT_ARGS;
+    Operator::_not(arg1);
+    EXPECT_EQ(Thread::readHigh(thread.cx), 0xFD);
+    EXPECT_EQ(Thread::readLow(thread.cx), 0x6F);
+}
+
+TEST_F(OperatorTest, Not16b) {
+    Instruction::constructInstruction(ram, 0, OPCode::NEG, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::BX, Location::AX);
+    CONSTRUCT_ARGS;
+    Operator::_not(arg1);
+    EXPECT_EQ(thread.bx, 0xFFE8);
+}
+
+TEST_F(OperatorTest, NotRAM) {
+    Instruction::constructInstruction(ram, 0, OPCode::NEG, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PAX, Location::AX);
+    CONSTRUCT_ARGS;
+    Operator::_not(arg1);
+    EXPECT_EQ(ram[5], 0xEE);
+    EXPECT_EQ(ram[4], 0x03);
+    EXPECT_EQ(ram[6], 0x22);
+}

@@ -260,8 +260,10 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
             Operator::shr(thread, arg1, arg2);
             break;
         case OPCode::NEG:
+            Operator::neg(thread, arg1);
             break;
         case OPCode::NOT:
+            Operator::_not(arg1);
             break;
         case OPCode::AND:
             break;
