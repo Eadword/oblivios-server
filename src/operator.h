@@ -30,6 +30,13 @@ namespace Operator {
     void _and(Thread& thread, Argument& arg1, const Argument& arg2);
 
     /**
+     * Decrement the argument by 1 without altering the carry flag.
+     * @param thread Current thread with registers and flag values.
+     * @param arg Argument to decrement.
+     */
+    void dec(Thread& thread, Argument& arg);
+
+    /**
      * Unsigned division of AX or AL by the argument. If 8bit, it will divide
      * AX by arg, and save in AL with the remainder in AH. If 16bit, it will
      * divide AX by arg, and save in AX with the remainder stored in BX.
@@ -61,6 +68,13 @@ namespace Operator {
      * @param arg Argument used to multiply by.
      */
     void imul(Thread& thread, const Argument& arg);
+
+    /**
+     * Increment the argument by 1 without altering the carry flag.
+     * @param thread Current thread with registers and flag values.
+     * @param arg Argument to increment.
+     */
+    void inc(Thread& thread, Argument& arg);
 
     /**
      * Sends an interrupt which is interpreted by the "OS".

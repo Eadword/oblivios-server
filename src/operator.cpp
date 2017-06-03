@@ -50,6 +50,26 @@ void Operator::_and(Thread& thread, Argument& arg1, const Argument& arg2) {
 }
 
 
+void Operator::dec(Thread& thread, Argument& arg) {
+    const bool ebit = arg.is8Bit();
+    if(arg.is8Bit()) {
+        uint8_t v = (uint8_t)(arg.read(true));
+        thread.o = v == 0 || v == 0x80;
+        v--;
+        thread.s = (v & 0x80) != 0;
+        thread.z = v == 0;
+        arg.write(v, true);
+    } else {
+        uint16_t v = arg.read();
+        thread.o = v == 0 || v == 0x8000;
+        v--;
+        thread.s = (v & 0x8000) != 0;
+        thread.z = v == 0;
+        arg.write(v);
+    }
+}
+
+
 void Operator::div(Thread& thread, const Argument& arg) {
     if(arg.is8Bit()) {
         const uint16_t n = thread.ax;
@@ -132,6 +152,26 @@ void Operator::imul(Thread& thread, const Argument& arg) {
             thread.ax = (uint16_t)v;
             thread.bx = (uint16_t)(v >> 16);
         }
+    }
+}
+
+
+void Operator::inc(Thread& thread, Argument& arg) {
+    const bool ebit = arg.is8Bit();
+    if(arg.is8Bit()) {
+        uint8_t v = (uint8_t)(arg.read(true));
+        v++;
+        thread.s = (v & 0x80) != 0;
+        thread.o = v == 0 || v == 0x80;
+        thread.z = v == 0;
+        arg.write(v, true);
+    } else {
+        uint16_t v = arg.read();
+        v++;
+        thread.s = (v & 0x8000) != 0;
+        thread.o = v == 0 || v == 0x8000;
+        thread.z = v == 0;
+        arg.write(v);
     }
 }
 
