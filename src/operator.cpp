@@ -3,9 +3,21 @@
 #include "argument.h"
 #include "thread.h"
 
+
+//Used for AND, OR, and XOR because they are all the same save for a single operator
+#define DUAL_LOGIC_OPERATION(op)                                        \
+    thread.o = thread.c = 0;                                            \
+    const bool both8bit = arg1.is8Bit() && arg2.is8Bit();               \
+    const uint16_t v = arg1.read(both8bit) op arg2.read(both8bit);      \
+    thread.z = v == 0;                                                  \
+    thread.s = ((both8bit ? 0x80 : 0x8000) & v) != 0;                   \
+    arg1.write(v, both8bit);
+
+
 static inline uint16_t neg(uint16_t v) {
     return (uint16_t)(~v + 1);
 }
+
 
 static void add(Thread& thread, Argument& arg1, const Argument& arg2, bool negate = false) {
     const bool ebit = arg1.is8Bit();
@@ -30,6 +42,11 @@ static void add(Thread& thread, Argument& arg1, const Argument& arg2, bool negat
 
 void Operator::add(Thread& thread, Argument& arg1, const Argument& arg2) {
     ::add(thread, arg1, arg2);
+}
+
+
+void Operator::_and(Thread& thread, Argument& arg1, const Argument& arg2) {
+    DUAL_LOGIC_OPERATION(&)
 }
 
 
@@ -182,6 +199,11 @@ void Operator::_not(Argument& arg) {
 }
 
 
+void Operator::_or(Thread& thread, Argument& arg1, const Argument& arg2) {
+    DUAL_LOGIC_OPERATION(|)
+}
+
+
 void Operator::shl(Thread& thread, Argument& arg1, const Argument& arg2) {
     uint16_t v = arg1.read();
     const uint16_t n = arg2.read();
@@ -225,4 +247,9 @@ void Operator::sub(Thread& thread, Argument& arg1, const Argument& arg2) {
 
 void Operator::swp(Argument& arg1, Argument& arg2) {
     arg1.swp(arg2);
+}
+
+
+void Operator::_xor(Thread& thread, Argument& arg1, const Argument& arg2) {
+    DUAL_LOGIC_OPERATION(^)
 }

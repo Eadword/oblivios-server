@@ -22,6 +22,14 @@ namespace Operator {
     void add(Thread& thread, Argument& arg1, const Argument& arg2);
 
     /**
+     * Perform AND operator such that arg1 &= arg2.
+     * @param thread Current thread with registers and flag values.
+     * @param arg1 Argument storing the first value and will hold the result.
+     * @param arg2 Argument storing the second value.
+     */
+    void _and(Thread& thread, Argument& arg1, const Argument& arg2);
+
+    /**
      * Unsigned division of AX or AL by the argument. If 8bit, it will divide
      * AX by arg, and save in AL with the remainder in AH. If 16bit, it will
      * divide AX by arg, and save in AX with the remainder stored in BX.
@@ -95,6 +103,14 @@ namespace Operator {
     void _not(Argument& arg);
 
     /**
+     * Perform OR operator such that arg1 |= arg2.
+     * @param thread Current thread with registers and flag values.
+     * @param arg1 Argument storing the first value and will hold the result.
+     * @param arg2 Argument storing the second value.
+     */
+    void _or(Thread& thread, Argument& arg1, const Argument& arg2);
+
+    /**
      * Shift logical left. Shifts bit to the left arg2 times.
      * Sets the overflow flag only if a shift by 1 and it cuts something off.
      * Carry flag set to last bit cut.
@@ -128,4 +144,13 @@ namespace Operator {
      * @param arg2 Second argument to be swapped.
      */
     void swp(Argument& arg1, Argument& arg2);
+
+
+    /**
+     * Perform XOR operator such that arg1 ^= arg2.
+     * @param thread Current thread with registers and flag values.
+     * @param arg1 Argument storing the first value and will hold the result.
+     * @param arg2 Argument storing the second value.
+     */
+    void _xor(Thread& thread, Argument& arg1, const Argument& arg2);
 }

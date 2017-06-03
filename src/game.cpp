@@ -266,10 +266,13 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
             Operator::_not(arg1);
             break;
         case OPCode::AND:
+            Operator::_and(thread, arg1, arg2);
             break;
         case OPCode::OR:
+            Operator::_or(thread, arg1, arg2);
             break;
         case OPCode::XOR:
+            Operator::_xor(thread, arg1, arg2);
             break;
         case OPCode::INC:
             break;
