@@ -389,7 +389,7 @@ TEST_F(OperatorTest, Sub) {
     EXPECT_EQ(arg1.read(), 0xFFEE);
     EXPECT_TRUE(thread.s);
     EXPECT_FALSE(thread.o);
-    EXPECT_FALSE(thread.c);
+    EXPECT_TRUE(thread.c);
     EXPECT_FALSE(thread.z);
 }
 

@@ -14,34 +14,58 @@
     arg1.write(v, ebit);
 
 
-static inline uint16_t neg(uint16_t v) {
-    return (uint16_t)(~v + 1);
-}
+//Sign mask
+#define SMASK (ebit ? 0x0080 : 0x8000)
+
+//Check if the var is signed
+#define IS_SIGNED(var) (!!(var & SMASK))
+
+//Bit mask
+#define BMASK (ebit ? 0x00FF : 0xFFFF)
+
+//Negate the value and apply a mask for the bit size
+#define NEGATE(var) ((uint16_t)((~var + 1) & BMASK))
 
 
-static void add(Thread& thread, Argument& arg1, const Argument& arg2, bool negate = false) {
-    const bool ebit = Argument::is8BitOp(arg1, arg2);
-
-    const uint16_t arg1v = arg1.read(ebit);
-    const uint16_t arg2v = negate ? ::neg(arg2.read(ebit)) : arg2.read(ebit);
-
-    const bool arg1s = arg1.sign();
-    const bool arg2s = ((ebit ? 0x0080 : 0x8000) & arg2v) != 0;
-
-    const uint16_t sum = arg1.write(arg1v + arg2v, ebit);
-
-    thread.c = (sum < arg1v || sum < arg2v);
-    thread.s = arg1.sign();
-    thread.z = sum == 0;
-
-    //overflow if both args have same sign and the arg has a sign which is the opposite
-    thread.o = (arg1s == arg2s && arg1.sign() != arg1s);
-}
+//static void add(Thread& thread, Argument& arg1, const Argument& arg2, bool negate = false) {
+//    const bool ebit = Argument::is8BitOp(arg1, arg2);
+//
+//    const uint16_t arg1v = arg1.read(ebit);
+//    const uint16_t arg2v = negate ? ::neg(arg2.read(ebit)) : arg2.read(ebit);
+//
+//    const bool arg1s = arg1.sign();
+//    const bool arg2s = ((ebit ? 0x0080 : 0x8000) & arg2v) != 0;
+//
+//    const uint16_t sum = arg1.write(arg1v + arg2v, ebit);
+//
+//    thread.c = (sum < arg1v || sum < arg2v);
+//    thread.s = arg1.sign();
+//    thread.z = sum == 0;
+//
+//    //overflow if both args have same sign and the arg has a sign which is the opposite
+//    thread.o = (arg1s == arg2s && arg1.sign() != arg1s);
+//}
 
 
 
 void Operator::add(Thread& thread, Argument& arg1, const Argument& arg2) {
-    ::add(thread, arg1, arg2);
+    const bool ebit = Argument::is8BitOp(arg1, arg2);
+
+    const uint16_t arg1v = arg1.read(ebit);
+    const uint16_t arg2v = arg2.read(ebit);
+
+    const bool arg1s = IS_SIGNED(arg1v);
+    const bool arg2s = IS_SIGNED(arg2v);
+
+    const uint16_t sum = arg1.write(arg1v + arg2v, ebit);
+    const bool sum_sign = IS_SIGNED(sum);
+
+    thread.c = (sum < arg1v || sum < arg2v);
+    thread.s = sum_sign;
+    thread.z = !sum;
+
+    //overflow if both args have same sign and the result has a sign which is the opposite
+    thread.o = (arg1s == arg2s && sum_sign != arg1s);
 }
 
 
@@ -227,7 +251,7 @@ void Operator::neg(Thread& thread, Argument& arg) {
     thread.c = v != 0;
     thread.o = v == (ebit ? 0x80 : 0x8000);
 
-    arg.write(::neg(v), true); //always force ram to be 8bit
+    arg.write(NEGATE(v), true); //always force ram to be 8bit
 
     thread.s = arg.sign();
 }
@@ -283,7 +307,23 @@ void Operator::shr(Thread& thread, Argument& arg1, const Argument& arg2) {
 
 
 void Operator::sub(Thread& thread, Argument& arg1, const Argument& arg2) {
-    ::add(thread, arg1, arg2, true);
+    const bool ebit = Argument::is8BitOp(arg1, arg2);
+
+    const uint16_t arg1v = arg1.read(ebit);
+    const uint16_t arg2v = arg2.read(ebit);
+
+    const bool arg1s = IS_SIGNED(arg1v);
+    const bool arg2s = !IS_SIGNED(arg2v); //because of the implicit subtraction
+
+    const uint16_t sum = arg1.write(arg1v + NEGATE(arg2v), ebit);
+    const bool sum_sign = IS_SIGNED(sum);
+
+    thread.c = arg1v < arg2v;
+    thread.s = sum_sign;
+    thread.z = !sum;
+
+    //overflow if both args have same sign and the result has a sign which is the opposite
+    thread.o = (arg1s == arg2s && sum_sign != arg1s);
 }
 
 
