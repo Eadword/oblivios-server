@@ -30,6 +30,14 @@ namespace Operator {
     void _and(Thread& thread, Argument& arg1, const Argument& arg2);
 
     /**
+     * Set flags from performing arg1 - arg2 without changing the arguments' values.
+     * @param thread Current thread with registers and flag values.
+     * @param arg1 Argument storing the first value.
+     * @param arg2 Argument storing the second value.
+     */
+    void cmp(Thread& thread, const Argument& arg1, const Argument& arg2);
+
+    /**
      * Decrement the argument by 1 without altering the carry flag.
      * @param thread Current thread with registers and flag values.
      * @param arg Argument to decrement.
@@ -159,6 +167,13 @@ namespace Operator {
      */
     void swp(Argument& arg1, Argument& arg2);
 
+    /**
+     * Set flags from performing arg1 & arg2 without changing the arguments' values.
+     * @param thread Current thread with registers and flag values.
+     * @param arg1 Argument storing the first value.
+     * @param arg2 Argument storing the second value.
+     */
+    void test(Thread& thread, const Argument& arg1, const Argument& arg2);
 
     /**
      * Perform XOR operator such that arg1 ^= arg2.

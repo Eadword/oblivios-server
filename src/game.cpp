@@ -281,8 +281,10 @@ bool Game::execIns(Thread &thread, const uint8_t pid, uint32_t& remaining_cycles
             Operator::dec(thread, arg1);
             break;
         case OPCode::CMP:
+            Operator::cmp(thread, arg1, arg2);
             break;
         case OPCode::TEST:
+            Operator::test(thread, arg1, arg2);
             break;
         case OPCode::JMP:
             break;

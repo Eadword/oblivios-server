@@ -15,37 +15,16 @@
 
 
 //Sign mask
-#define SMASK (ebit ? 0x0080 : 0x8000)
+#define SMASK ((uint16_t)(ebit ? 0x0080 : 0x8000))
 
 //Check if the var is signed
 #define IS_SIGNED(var) (!!(var & SMASK))
 
 //Bit mask
-#define BMASK (ebit ? 0x00FF : 0xFFFF)
+#define BMASK ((uint16_t)(ebit ? 0x00FF : 0xFFFF))
 
 //Negate the value and apply a mask for the bit size
 #define NEGATE(var) ((uint16_t)((~var + 1) & BMASK))
-
-
-//static void add(Thread& thread, Argument& arg1, const Argument& arg2, bool negate = false) {
-//    const bool ebit = Argument::is8BitOp(arg1, arg2);
-//
-//    const uint16_t arg1v = arg1.read(ebit);
-//    const uint16_t arg2v = negate ? ::neg(arg2.read(ebit)) : arg2.read(ebit);
-//
-//    const bool arg1s = arg1.sign();
-//    const bool arg2s = ((ebit ? 0x0080 : 0x8000) & arg2v) != 0;
-//
-//    const uint16_t sum = arg1.write(arg1v + arg2v, ebit);
-//
-//    thread.c = (sum < arg1v || sum < arg2v);
-//    thread.s = arg1.sign();
-//    thread.z = sum == 0;
-//
-//    //overflow if both args have same sign and the arg has a sign which is the opposite
-//    thread.o = (arg1s == arg2s && arg1.sign() != arg1s);
-//}
-
 
 
 void Operator::add(Thread& thread, Argument& arg1, const Argument& arg2) {
@@ -71,6 +50,27 @@ void Operator::add(Thread& thread, Argument& arg1, const Argument& arg2) {
 
 void Operator::_and(Thread& thread, Argument& arg1, const Argument& arg2) {
     DUAL_LOGIC_OPERATION(&)
+}
+
+
+void Operator::cmp(Thread& thread, const Argument& arg1, const Argument& arg2) {
+    const bool ebit = Argument::is8BitOp(arg1, arg2);
+
+    const uint16_t arg1v = arg1.read(ebit);
+    const uint16_t arg2v = arg2.read(ebit);
+
+    const bool arg1s = IS_SIGNED(arg1v);
+    const bool arg2s = !IS_SIGNED(arg2v); //because of the implicit subtraction
+
+    const uint16_t sum = (arg1v + NEGATE(arg2v)) & BMASK;
+    const bool sum_sign = IS_SIGNED(sum);
+
+    thread.c = arg1v < arg2v;
+    thread.s = sum_sign;
+    thread.z = !sum;
+
+    //overflow if both args have same sign and the result has a sign which is the opposite
+    thread.o = (arg1s == arg2s && sum_sign != arg1s);
 }
 
 
@@ -247,13 +247,14 @@ void Operator::mul(Thread& thread, const Argument& arg) {
 void Operator::neg(Thread& thread, Argument& arg) {
     const bool ebit = arg.is8Bit();
     const uint16_t v = arg.read(ebit); //8bit if in ram
-    thread.z = v == 0;
+    const uint16_t n = NEGATE(v);
+    thread.z = !v;
     thread.c = v != 0;
-    thread.o = v == (ebit ? 0x80 : 0x8000);
+    thread.o = v == SMASK;
 
-    arg.write(NEGATE(v), true); //always force ram to be 8bit
+    arg.write(n, ebit);
 
-    thread.s = arg.sign();
+    thread.s = IS_SIGNED(n);
 }
 
 
@@ -274,7 +275,7 @@ void Operator::shl(Thread& thread, Argument& arg1, const Argument& arg2) {
     const uint16_t n = arg2.read();
 
     //set carry to last bit which is cut off
-    thread.c = ((v << std::max((int)n - 1, 0)) & (ebit ? 0x80 : 0x8000)) != 0;
+    thread.c = ((v << std::max((int)n - 1, 0)) & SMASK) != 0;
 
     v <<= n;
     arg1.write(v, ebit);
@@ -294,7 +295,7 @@ void Operator::shr(Thread& thread, Argument& arg1, const Argument& arg2) {
     const uint16_t n = arg2.read();
 
     //set overflow flag to most significant bit of original
-    thread.o = (v & (ebit ? 0x80 : 0x8000)) != 0;
+    thread.o = (v & SMASK) != 0;
     //set carry to last bit which is cut off
     thread.c = ((v >> std::max((int)n - 1, 0)) & (0x0001)) != 0;
 
@@ -302,7 +303,7 @@ void Operator::shr(Thread& thread, Argument& arg1, const Argument& arg2) {
     arg1.write(v, ebit);
 
     thread.z = !v;
-    thread.s = (v & (ebit ? 0x80 : 0x8000)) != 0;
+    thread.s = (v & SMASK) != 0;
 }
 
 
@@ -329,6 +330,20 @@ void Operator::sub(Thread& thread, Argument& arg1, const Argument& arg2) {
 
 void Operator::swp(Argument& arg1, Argument& arg2) {
     arg1.swp(arg2);
+}
+
+
+void Operator::test(Thread& thread, const Argument& arg1, const Argument& arg2) {
+    const bool ebit = Argument::is8BitOp(arg1, arg2);
+
+    const uint16_t arg1v = arg1.read(ebit);
+    const uint16_t arg2v = arg2.read(ebit);
+
+    const uint16_t result = arg1v & arg2v & BMASK;
+
+    thread.o = thread.c = 0;
+    thread.s = IS_SIGNED(result);
+    thread.z = !result;
 }
 
 

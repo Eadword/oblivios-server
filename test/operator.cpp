@@ -490,10 +490,9 @@ TEST_F(OperatorTest, NotRAM) {
 }
 
 TEST_F(OperatorTest, And8b) {
+    Instruction::constructInstruction(ram, 0, OPCode::AND, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::CL, Location::CH);
     {
-        Instruction::constructInstruction(ram, 0, OPCode::AND, AccessMode::DIRECT, AccessMode::DIRECT,
-                                          Location::CL, Location::CH);
-
         CONSTRUCT_ARGS;
         Operator::_and(thread, arg1, arg2);
         EXPECT_EQ(thread.cx, 0x0202);
@@ -501,10 +500,10 @@ TEST_F(OperatorTest, And8b) {
         EXPECT_FALSE(thread.z);
         EXPECT_FALSE(thread.s);
     }
-    {
-        Instruction::constructInstruction(ram, 0, OPCode::AND, AccessMode::DIRECT, AccessMode::DIRECT,
-                                          Location::CL, Location::AL);
 
+    Instruction::constructInstruction(ram, 0, OPCode::AND, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::CL, Location::AL);
+    {
         CONSTRUCT_ARGS;
         thread.cx = 0x0082;
         thread.ax = 0x008F;
@@ -537,10 +536,9 @@ TEST_F(OperatorTest, And16b) {
 }
 
 TEST_F(OperatorTest, AndRAM) {
+    Instruction::constructInstruction(ram, 0, OPCode::AND, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PAX, Location::BL);
     {
-        Instruction::constructInstruction(ram, 0, OPCode::AND, AccessMode::DIRECT, AccessMode::DIRECT,
-                                          Location::PAX, Location::BL);
-
         CONSTRUCT_ARGS;
         thread.bx = 0;
         Operator::_and(thread, arg1, arg2);
@@ -551,10 +549,10 @@ TEST_F(OperatorTest, AndRAM) {
         EXPECT_TRUE(thread.z);
         EXPECT_FALSE(thread.s);
     }
-    {
-        Instruction::constructInstruction(ram, 0, OPCode::AND, AccessMode::DIRECT, AccessMode::DIRECT,
-                                          Location::PAX, Location::BX);
 
+    Instruction::constructInstruction(ram, 0, OPCode::AND, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PAX, Location::BX);
+    {
         CONSTRUCT_ARGS;
         thread.bx = 0;
         Operator::_and(thread, arg1, arg2);
@@ -569,10 +567,9 @@ TEST_F(OperatorTest, AndRAM) {
 }
 
 TEST_F(OperatorTest, Or8b) {
+    Instruction::constructInstruction(ram, 0, OPCode::OR, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::CL, Location::CH);
     {
-        Instruction::constructInstruction(ram, 0, OPCode::OR, AccessMode::DIRECT, AccessMode::DIRECT,
-                                          Location::CL, Location::CH);
-
         CONSTRUCT_ARGS;
         Operator::_or(thread, arg1, arg2);
         EXPECT_EQ(thread.cx, 0x026F);
@@ -580,10 +577,10 @@ TEST_F(OperatorTest, Or8b) {
         EXPECT_FALSE(thread.z);
         EXPECT_FALSE(thread.s);
     }
-    {
-        Instruction::constructInstruction(ram, 0, OPCode::OR, AccessMode::DIRECT, AccessMode::DIRECT,
-                                          Location::CL, Location::AL);
 
+    Instruction::constructInstruction(ram, 0, OPCode::OR, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::CL, Location::AL);
+    {
         CONSTRUCT_ARGS;
         thread.cx = 0x0090;
         thread.ax = 0x008F;
@@ -617,10 +614,9 @@ TEST_F(OperatorTest, Or16b) {
 }
 
 TEST_F(OperatorTest, OrRAM) {
+    Instruction::constructInstruction(ram, 0, OPCode::OR, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PAX, Location::BL);
     {
-        Instruction::constructInstruction(ram, 0, OPCode::OR, AccessMode::DIRECT, AccessMode::DIRECT,
-                                          Location::PAX, Location::BL);
-
         CONSTRUCT_ARGS;
         Operator::_or(thread, arg1, arg2);
         EXPECT_EQ(ram[5], 0x17);
@@ -630,10 +626,10 @@ TEST_F(OperatorTest, OrRAM) {
         EXPECT_FALSE(thread.z);
         EXPECT_FALSE(thread.s);
     }
-    {
-        Instruction::constructInstruction(ram, 0, OPCode::OR, AccessMode::DIRECT, AccessMode::DIRECT,
-                                          Location::PAX, Location::BX);
 
+    Instruction::constructInstruction(ram, 0, OPCode::OR, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PAX, Location::BX);
+    {
         CONSTRUCT_ARGS;
         thread.bx = 0xFFFF;
         Operator::_or(thread, arg1, arg2);
@@ -648,10 +644,9 @@ TEST_F(OperatorTest, OrRAM) {
 }
 
 TEST_F(OperatorTest, Xor8b) {
+    Instruction::constructInstruction(ram, 0, OPCode::XOR, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::CL, Location::CH);
     {
-        Instruction::constructInstruction(ram, 0, OPCode::XOR, AccessMode::DIRECT, AccessMode::DIRECT,
-                                          Location::CL, Location::CH);
-
         CONSTRUCT_ARGS;
         Operator::_xor(thread, arg1, arg2);
         EXPECT_EQ(thread.cx, 0x026D);
@@ -659,10 +654,10 @@ TEST_F(OperatorTest, Xor8b) {
         EXPECT_FALSE(thread.z);
         EXPECT_FALSE(thread.s);
     }
-    {
-        Instruction::constructInstruction(ram, 0, OPCode::XOR, AccessMode::DIRECT, AccessMode::DIRECT,
-                                          Location::CL, Location::AL);
 
+    Instruction::constructInstruction(ram, 0, OPCode::XOR, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::CL, Location::AL);
+    {
         CONSTRUCT_ARGS;
         thread.cx = 0x0070;
         thread.ax = 0x008F;
@@ -694,10 +689,9 @@ TEST_F(OperatorTest, Xor16b) {
 }
 
 TEST_F(OperatorTest, XorRAM) {
+    Instruction::constructInstruction(ram, 0, OPCode::XOR, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PAX, Location::BL);
     {
-        Instruction::constructInstruction(ram, 0, OPCode::XOR, AccessMode::DIRECT, AccessMode::DIRECT,
-                                          Location::PAX, Location::BL);
-
         thread.bx = 0x11;
         CONSTRUCT_ARGS;
         Operator::_xor(thread, arg1, arg2);
@@ -708,10 +702,10 @@ TEST_F(OperatorTest, XorRAM) {
         EXPECT_TRUE(thread.z);
         EXPECT_FALSE(thread.s);
     }
-    {
-        Instruction::constructInstruction(ram, 0, OPCode::XOR, AccessMode::DIRECT, AccessMode::DIRECT,
-                                          Location::PAX, Location::BX);
 
+    Instruction::constructInstruction(ram, 0, OPCode::XOR, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PAX, Location::BX);
+    {
         CONSTRUCT_ARGS;
         thread.bx = 0xFFFF;
         Operator::_xor(thread, arg1, arg2);
@@ -795,4 +789,153 @@ TEST_F(OperatorTest, DecRAM) {
     EXPECT_FALSE(thread.o);
     EXPECT_FALSE(thread.z);
     EXPECT_FALSE(thread.s);
+}
+
+TEST_F(OperatorTest, Cmp8b) {
+    Instruction::constructInstruction(ram, 0, OPCode::CMP, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::AL, Location::BL);
+    {
+        CONSTRUCT_ARGS;
+        Operator::cmp(thread, arg1, arg2);
+        EXPECT_TRUE(thread.s);
+        EXPECT_FALSE(thread.o);
+        EXPECT_TRUE(thread.c);
+        EXPECT_FALSE(thread.z);
+    }
+
+    thread.bx = 5;
+    {
+        CONSTRUCT_ARGS;
+        Operator::cmp(thread, arg1, arg2);
+        EXPECT_FALSE(thread.s);
+        EXPECT_FALSE(thread.o);
+        EXPECT_FALSE(thread.c);
+        EXPECT_TRUE(thread.z);
+    }
+
+    thread.bx = 2;
+    {
+        CONSTRUCT_ARGS;
+        Operator::cmp(thread, arg1, arg2);
+        EXPECT_FALSE(thread.s);
+        EXPECT_FALSE(thread.o);
+        EXPECT_FALSE(thread.c);
+        EXPECT_FALSE(thread.z);
+    }
+
+    Instruction::constructInstruction(ram, 0, OPCode::CMP, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PAX, Location::BL);
+    thread.bx = 0x82;
+    {
+        CONSTRUCT_ARGS;
+        Operator::cmp(thread, arg1, arg2);
+        EXPECT_TRUE(thread.o);
+        EXPECT_TRUE(thread.c);
+        EXPECT_FALSE(thread.z);
+    }
+}
+
+TEST_F(OperatorTest, Cmp16b) {
+    Instruction::constructInstruction(ram, 0, OPCode::CMP, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::IMD, Location::AX);
+    {
+        CONSTRUCT_ARGS;
+        Operator::cmp(thread, arg1, arg2);
+        EXPECT_TRUE(thread.s);
+        EXPECT_FALSE(thread.o);
+        EXPECT_TRUE(thread.c);
+        EXPECT_FALSE(thread.z);
+    }
+
+    thread.ax = 4;
+    {
+        CONSTRUCT_ARGS;
+        Operator::cmp(thread, arg1, arg2);
+        EXPECT_FALSE(thread.s);
+        EXPECT_FALSE(thread.o);
+        EXPECT_FALSE(thread.c);
+        EXPECT_TRUE(thread.z);
+    }
+
+    thread.ax = 2;
+    {
+        CONSTRUCT_ARGS;
+        Operator::cmp(thread, arg1, arg2);
+        EXPECT_FALSE(thread.s);
+        EXPECT_FALSE(thread.o);
+        EXPECT_FALSE(thread.c);
+        EXPECT_FALSE(thread.z);
+    }
+
+    thread.ax = 0x8002;
+    Instruction::constructInstruction(ram, 0, OPCode::CMP, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PIMD, Location::AX);
+    {
+        CONSTRUCT_ARGS;
+        Operator::cmp(thread, arg1, arg2);
+        EXPECT_TRUE(thread.o);
+        EXPECT_TRUE(thread.c);
+        EXPECT_FALSE(thread.z);
+    }
+}
+
+TEST_F(OperatorTest, Test8b) {
+    Instruction::constructInstruction(ram, 0, OPCode::TEST, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::AL, Location::BL);
+    {
+        CONSTRUCT_ARGS;
+        Operator::test(thread, arg1, arg2);
+        EXPECT_FALSE(thread.s);
+        EXPECT_FALSE(thread.z);
+    }
+
+    thread.bx = 98;
+    {
+        CONSTRUCT_ARGS;
+        Operator::test(thread, arg1, arg2);
+        EXPECT_FALSE(thread.s);
+        EXPECT_TRUE(thread.z);
+    }
+
+    Instruction::constructInstruction(ram, 0, OPCode::TEST, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PAX, Location::BL);
+    thread.bx = 0x80;
+    ram[5] = 0x80;
+    {
+        CONSTRUCT_ARGS;
+        Operator::test(thread, arg1, arg2);
+        EXPECT_TRUE(thread.s);
+        EXPECT_FALSE(thread.z);
+    }
+}
+
+TEST_F(OperatorTest, Test16b) {
+    Instruction::constructInstruction(ram, 0, OPCode::TEST, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::IMD, Location::AX);
+    {
+        CONSTRUCT_ARGS;
+        Operator::test(thread, arg1, arg2);
+        EXPECT_FALSE(thread.s);
+        EXPECT_FALSE(thread.z);
+    }
+
+    thread.ax = 0x8000;
+    ram[2] = 0x80;
+    {
+        CONSTRUCT_ARGS;
+        Operator::test(thread, arg1, arg2);
+        EXPECT_TRUE(thread.s);
+        EXPECT_FALSE(thread.z);
+    }
+
+    thread.ax = 0x8002;
+    Instruction::constructInstruction(ram, 0, OPCode::TEST, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PIMD, Location::AX);
+    thread.ax = 6;
+    {
+        CONSTRUCT_ARGS;
+        Operator::test(thread, arg1, arg2);
+        EXPECT_FALSE(thread.s);
+        EXPECT_TRUE(thread.z);
+    }
 }
