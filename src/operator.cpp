@@ -6,12 +6,12 @@
 
 //Used for AND, OR, and XOR because they are all the same save for a single operator
 #define DUAL_LOGIC_OPERATION(op)                                        \
+    const bool ebit = Argument::is8BitOp(arg1, arg2);                   \
+    const uint16_t v = arg1.read(ebit) op arg2.read(ebit);              \
     thread.o = thread.c = 0;                                            \
-    const bool both8bit = arg1.is8Bit() && arg2.is8Bit();               \
-    const uint16_t v = arg1.read(both8bit) op arg2.read(both8bit);      \
     thread.z = v == 0;                                                  \
-    thread.s = ((both8bit ? 0x80 : 0x8000) & v) != 0;                   \
-    arg1.write(v, both8bit);
+    thread.s = ((ebit ? 0x80 : 0x8000) & v) != 0;                       \
+    arg1.write(v, ebit);
 
 
 static inline uint16_t neg(uint16_t v) {
@@ -20,15 +20,15 @@ static inline uint16_t neg(uint16_t v) {
 
 
 static void add(Thread& thread, Argument& arg1, const Argument& arg2, bool negate = false) {
-    const bool ebit = arg1.is8Bit();
+    const bool ebit = Argument::is8BitOp(arg1, arg2);
 
-    const uint16_t arg1v = arg1.read();
+    const uint16_t arg1v = arg1.read(ebit);
     const uint16_t arg2v = negate ? ::neg(arg2.read(ebit)) : arg2.read(ebit);
 
     const bool arg1s = arg1.sign();
     const bool arg2s = ((ebit ? 0x0080 : 0x8000) & arg2v) != 0;
 
-    const uint16_t sum = arg1.write(arg1v + arg2v, arg2.is8Bit());
+    const uint16_t sum = arg1.write(arg1v + arg2v, ebit);
 
     thread.c = (sum < arg1v || sum < arg2v);
     thread.s = arg1.sign();
@@ -221,11 +221,11 @@ void Operator::mul(Thread& thread, const Argument& arg) {
 
 
 void Operator::neg(Thread& thread, Argument& arg) {
-    const bool is8bit = arg.is8Bit();
-    const uint16_t v = arg.read(is8bit); //8bit if in ram
+    const bool ebit = arg.is8Bit();
+    const uint16_t v = arg.read(ebit); //8bit if in ram
     thread.z = v == 0;
     thread.c = v != 0;
-    thread.o = v == (is8bit ? 0x80 : 0x8000);
+    thread.o = v == (ebit ? 0x80 : 0x8000);
 
     arg.write(::neg(v), true); //always force ram to be 8bit
 
@@ -245,16 +245,17 @@ void Operator::_or(Thread& thread, Argument& arg1, const Argument& arg2) {
 
 
 void Operator::shl(Thread& thread, Argument& arg1, const Argument& arg2) {
-    uint16_t v = arg1.read();
+    const bool ebit = Argument::is8BitOp(arg1, arg2);
+    uint16_t v = arg1.read(ebit);
     const uint16_t n = arg2.read();
 
     //set carry to last bit which is cut off
-    thread.c = ((v << std::max((int)n - 1, 0)) & (arg1.is8Bit() ? 0x80 : 0x8000)) != 0;
+    thread.c = ((v << std::max((int)n - 1, 0)) & (ebit ? 0x80 : 0x8000)) != 0;
 
     v <<= n;
-    arg1.write(v, arg2.is8Bit());
+    arg1.write(v, ebit);
 
-    thread.s = (v & (arg1.is8Bit() ? 0x80: 0x8000)) != 0;
+    thread.s = (v & (ebit ? 0x80: 0x8000)) != 0;
     if(n == 1)
         //set overflow to true if the sign changed because of the shift
         thread.o =  thread.s != thread.c;
@@ -264,19 +265,20 @@ void Operator::shl(Thread& thread, Argument& arg1, const Argument& arg2) {
 
 
 void Operator::shr(Thread& thread, Argument& arg1, const Argument& arg2) {
-    uint16_t v = arg1.read();
+    const bool ebit = Argument::is8BitOp(arg1, arg2);
+    uint16_t v = arg1.read(ebit);
     const uint16_t n = arg2.read();
 
     //set overflow flag to most significant bit of original
-    thread.o = (v & (arg1.is8Bit() ? 0x80 : 0x8000)) != 0;
+    thread.o = (v & (ebit ? 0x80 : 0x8000)) != 0;
     //set carry to last bit which is cut off
     thread.c = ((v >> std::max((int)n - 1, 0)) & (0x0001)) != 0;
 
-    v >>= arg2.read();
-    arg1.write(v, arg2.is8Bit());
+    v >>= n;
+    arg1.write(v, ebit);
 
     thread.z = !v;
-    thread.s = (v & (arg1.is8Bit() ? 0x80 : 0x8000)) != 0;
+    thread.s = (v & (ebit ? 0x80 : 0x8000)) != 0;
 }
 
 

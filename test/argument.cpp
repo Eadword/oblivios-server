@@ -190,6 +190,58 @@ TEST_F(ArgumentTest, Is8Bit) {
 
 }
 
+TEST_F(ArgumentTest, Is8BitOp) {
+    Instruction::constructInstruction(ram, 0, OPCode::ADD, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::IMD, Location::CX);
+    {
+        CONSTRUCT_ARGS;
+        EXPECT_FALSE(Argument::is8BitOp(arg1, arg2));
+    }
+
+    Instruction::constructInstruction(ram, 0, OPCode::ADD, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PAX, Location::CX);
+    {
+        CONSTRUCT_ARGS;
+        EXPECT_FALSE(Argument::is8BitOp(arg1, arg2));
+    }
+
+    Instruction::constructInstruction(ram, 0, OPCode::ADD, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::IMD, Location::PCX);
+    {
+        CONSTRUCT_ARGS;
+        EXPECT_FALSE(Argument::is8BitOp(arg1, arg2));
+    }
+
+    Instruction::constructInstruction(ram, 0, OPCode::ADD, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PBX, Location::IMD);
+    {
+        CONSTRUCT_ARGS;
+        EXPECT_FALSE(Argument::is8BitOp(arg1, arg2));
+    }
+
+    Instruction::constructInstruction(ram, 0, OPCode::ADD, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::AL, Location::AH);
+    {
+        CONSTRUCT_ARGS;
+        EXPECT_TRUE(Argument::is8BitOp(arg1, arg2));
+    }
+
+    Instruction::constructInstruction(ram, 0, OPCode::ADD, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::AL, Location::PBX);
+    {
+        CONSTRUCT_ARGS;
+        EXPECT_TRUE(Argument::is8BitOp(arg1, arg2));
+    }
+
+    Instruction::constructInstruction(ram, 0, OPCode::ADD, AccessMode::DIRECT, AccessMode::DIRECT,
+                                      Location::PAX, Location::PBX);
+    {
+        CONSTRUCT_ARGS;
+        EXPECT_TRUE(Argument::is8BitOp(arg1, arg2));
+    }
+
+}
+
 TEST_F(ArgumentTest, IsMem) {
     Instruction::constructInstruction(ram, 0, OPCode::ADD, AccessMode::DIRECT, AccessMode::DIRECT,
                                       Location::AL, Location::CX);

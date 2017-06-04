@@ -32,6 +32,16 @@ class Argument {
     bool read_only;
 
 public:
+
+    /**
+     * Check whether an operation on the two arguments will be 8bit; if false it is 16bit.
+     * @param arg1 First argument, the destination.
+     * @param arg2 Second argument, the source.
+     * @return True if the operation is on 8bits, false if it is on 16bits.
+     */
+    static inline bool is8BitOp(const Argument& arg1, const Argument& arg2);
+
+    //Do not allow default construction
     Argument() = delete;
 
     /**
@@ -112,4 +122,14 @@ public:
 
 inline uint16_t Argument::write(const Argument& src) {
     return write(src.read(), src.is8Bit());
+}
+
+
+inline bool Argument::is8BitOp(const Argument& arg1, const Argument& arg2) {
+    //Will be 16 bit if either
+    // 1. Arg1 is 16bit
+    // 2. Arg1 is RAM and Arg2 is 16bit
+    const bool _16b = (!arg1.is8Bit()) || (arg1.isMem() && !arg2.is8Bit());
+
+    return !_16b;
 }
